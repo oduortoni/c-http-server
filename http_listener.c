@@ -15,23 +15,24 @@ int httpListener(char *host, Router router) {
 
     int server_socket = listening_socket(head, port);
     printf("Serving HTTP requests on %d\n", port);
+    
+    while(1) {
+      struct sockaddr_in client_addr;
+      socklen_t client_addrlen = sizeof(client_addr);
+      int client_conn = accept(server_socket, (struct sockaddr*)&client_addr, &client_addrlen);
 
-    struct sockaddr_in client_addr;
-    socklen_t client_addrlen = sizeof(client_addr);
-    int client_conn = accept(server_socket, (struct sockaddr*)&client_addr, &client_addrlen);
-
-    if (client_conn < 0) {
+      if (client_conn < 0) {
         perror("accept() failed");
         close(server_socket);
         exit(1);
+      }
+
+      printf("Accepted connection from %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+
+      Client client = {client_conn};
+
+      handleConnection(router, client);
     }
-
-    printf("Accepted connection from %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
-
-    Client client = {client_conn};
-
-    handleConnection(router, client);
-    // read/write data from client
 
     return 0;
 }
