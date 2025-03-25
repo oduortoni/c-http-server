@@ -3,22 +3,23 @@
 
 const int PORT = 9000;
 
-HandlerFunc Index(ResponseWriter w, Request r);
+int Index(ResponseWriter w, Request r);
+
+HttpServer http = {httpListener, handleFunc};
 
 int main() {
     char host[120];
     sprintf(host, "localhost:%d", PORT);
 
-    Server server;
-    server.HandleFunc("/", Index);
+    http.HandleFunc("/", Index);
 
     Router router;
-    server.ListenAndServe(host, router);
+    http.ListenAndServe(host, router);
 
     printf("Server listening on %d\n", PORT);
     return 0;
 }
 
-HandlerFunc Index(ResponseWriter w, Request r) {
+int Index(ResponseWriter w, Request r) {
     w.Write("Hello there");
 }

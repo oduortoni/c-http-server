@@ -1,6 +1,8 @@
 #ifndef _HEADER_H
 #define _HEADER_H
 
+#include <stdio.h>
+
 struct ResponseWriter {
     int (*Write)(char* p);
     int (*Read)(char* p);
@@ -20,7 +22,7 @@ struct Request {
 };
 typedef struct Request Request;
 
-typedef int(*HandlerFunc)(ResponseWriter *w, Request *r);
+typedef int(*HandlerFunc)(ResponseWriter w, Request r);
 
 struct Router {
     char patterns[50];
@@ -28,10 +30,15 @@ struct Router {
 };
 typedef struct Router* Router;
 
-struct Server {
-    int (*ListenAndServe)(char *host, Router *router);
-    int (*HandleFunc)(char *pattern, HandlerFunc *handler);
+struct HttpServer {
+    int (*ListenAndServe)(char *host, Router router);
+    int (*HandleFunc)(char *pattern, HandlerFunc handler);
 };
-typedef struct Server Server;
+typedef struct HttpServer HttpServer;
+
+int httpListener(char *host, Router router);
+int handleFunc(char *pattern, HandlerFunc handler);
+
+extern HttpServer http;
 
 #endif // _HEADER_H
