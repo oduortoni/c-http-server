@@ -28,6 +28,12 @@ typedef struct Request Request;
 
 typedef int(*HandlerFunc)(ResponseWriter w, Request r);
 
+struct Client {
+    // char address[128];
+    int socket;
+};
+typedef struct Client Client;
+
 struct Router {
     char patterns[50];
     HandlerFunc handlers[50];
@@ -42,6 +48,7 @@ typedef struct HttpServer HttpServer;
 
 int httpListener(char *host, Router router);
 int handleFunc(char *pattern, HandlerFunc handler);
+int handleConnection(Router router, Client client);
 
 extern HttpServer http;
 

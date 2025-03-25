@@ -16,21 +16,24 @@ int httpListener(char *host, Router router) {
     int server_socket = listening_socket(head, port);
     printf("Serving HTTP requests on %d\n", port);
 
-    struct sockaddr_in clientAddr;
-    socklen_t clientAddrLen = sizeof(clientAddr);
-    int clientConn = accept(server_socket, (struct sockaddr*)&clientAddr, &clientAddrLen);
+    struct sockaddr_in client_addr;
+    socklen_t client_addrlen = sizeof(client_addr);
+    int client_conn = accept(server_socket, (struct sockaddr*)&client_addr, &client_addrlen);
 
-    if (clientConn < 0) {
+    if (client_conn < 0) {
         perror("accept() failed");
         close(server_socket);
         exit(1);
     }
 
-    printf("Accepted connection from %s:%d\n", inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
+    printf("Accepted connection from %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
 
+    Client client = {client_conn};
+
+    handleConnection(router, client);
     // read/write data from client
 
-    return clientConn;
+    return 0;
 }
 
 void str_split(const char *input, char delimiter, char *head, char *tail) {

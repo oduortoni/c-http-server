@@ -1,4 +1,4 @@
-OBJECTS=hlistener.o hhandlerfunc.o main.o hserver.o
+OBJECTS=hlistener.o hhandlerfunc.o main.o hserver.o hhandle.o
 
 go:
 	make clean
@@ -16,6 +16,9 @@ init:
 
 main.o:
 	cc -c main.c -o main.o
+
+hhandle.o:
+	cc -c http_handle.c -o hhandle.o
 
 hserver.o:
 	cc -c http_server.c -o hserver.o
