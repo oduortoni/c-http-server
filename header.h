@@ -14,14 +14,13 @@ struct Header {
 typedef struct Header* Header;
 
 struct Request {
-    Header* headers;
+    Header headers[10];
     int (*Write)(char* p);
     int (*Read)(char* p);
 };
 typedef struct Request Request;
 
-int (*HandlerFunc)(ResponseWriter *w, Request *r);
-typedef HandlerFunc HandlerFunc;
+typedef int(*HandlerFunc)(ResponseWriter *w, Request *r);
 
 struct Router {
     char patterns[50];

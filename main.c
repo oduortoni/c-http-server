@@ -1,16 +1,16 @@
 #include <stdio.h>
 #include "header.h"
 
-const PORT = 9000;
+const int PORT = 9000;
 
-HandlerFunc index(ResponseWriter w, Request r);
+HandlerFunc Index(ResponseWriter w, Request r);
 
 int main() {
     char host[120];
     sprintf(host, "localhost:%d", PORT);
 
     Server server;
-    server.HandleFunc("/", index);
+    server.HandleFunc("/", Index);
 
     Router router;
     server.ListenAndServe(host, router);
@@ -19,6 +19,6 @@ int main() {
     return 0;
 }
 
-HandlerFunc index(ResponseWriter w, Request r) {
-    //
+HandlerFunc Index(ResponseWriter w, Request r) {
+    w.Write("Hello there");
 }
