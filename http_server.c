@@ -1,3 +1,3 @@
 #include "header.h"
 
-// HttpServer http = {httpListener, handleFunc};
+HttpServer http = {httpListener, handleFunc};

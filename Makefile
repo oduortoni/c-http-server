@@ -1,17 +1,30 @@
-OBJECTS=hlistener.o hhandlerfunc.o main.o
+OBJECTS=hlistener.o hhandlerfunc.o main.o hserver.o
 
-run: $(OBJECTS)
+go:
+	make clean
+	make compile
+	make run
+	
+compile: $(OBJECTS)
 	cc -o bin/server $(OBJECTS)
+
+run:
 	./bin/server
 
+init:
+	mkdir bin
+
 main.o:
-	cc -o main.o -c main.c
+	cc -c main.c -o main.o
+
+hserver.o:
+	cc -c http_server.c -o hserver.o
 
 hlistener.o:
-	cc -o hlistener.o -c http_listener.c
+	cc -c http_listener.c -o hlistener.o
 
 hhandlerfunc.o:
-	cc -o hhandlerfunc.o -c http_handlerfunc.c
+	cc -c http_handlerfunc.c -o hhandlerfunc.o
 
 clean:
 	rm -f $(OBJECTS)

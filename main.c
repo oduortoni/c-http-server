@@ -5,11 +5,9 @@ const int PORT = 9000;
 
 int Index(ResponseWriter w, Request r);
 
-HttpServer http = {httpListener, handleFunc};
-
 int main() {
     char host[120];
-    sprintf(host, "localhost:%d", PORT);
+    sprintf(host, "127.0.0.1:%d", PORT);
 
     http.HandleFunc("/", Index);
 
