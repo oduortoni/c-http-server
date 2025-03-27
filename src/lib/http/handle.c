@@ -1,6 +1,6 @@
 #include "header.h"
 
-int handleConnection(Router router, Client client) {
+int handle(Router router, Client client) {
     char buffer[1024];
 
     ssize_t bytes_read = read(client.socket, buffer, sizeof(buffer) - 1);
@@ -15,7 +15,7 @@ int handleConnection(Router router, Client client) {
     printf("Received from client: %s\n", buffer);
 
     // response back to the client
-    const char *response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nHello, world!";
+    const char *response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<html><body style='height:100vh;display:flex;justify-content:center;align-items:center;'><h1 >C Server</h1></body></html>";
     ssize_t bytes_written = write(client.socket, response, strlen(response));
 
     if (bytes_written < 0) {
@@ -25,6 +25,5 @@ int handleConnection(Router router, Client client) {
     }
 
     close(client.socket);
-
     return 0;
 }

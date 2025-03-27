@@ -7,6 +7,7 @@ SRC_DIR = src
 LIB_DIR = $(SRC_DIR)/lib
 NET_DIR = $(LIB_DIR)/net
 HTTP_DIR = $(LIB_DIR)/http
+ENV_DIR = $(LIB_DIR)/env
 BIN_DIR = bin
 OBJ_DIR = $(BIN_DIR)/obj
 
@@ -19,7 +20,8 @@ endef
 MAIN_SRC = $(SRC_DIR)/main.c
 NET_SRCS = $(wildcard $(NET_DIR)/*.c)
 HTTP_SRCS = $(wildcard $(HTTP_DIR)/*.c)
-ALL_SRCS = $(MAIN_SRC) $(NET_SRCS) $(HTTP_SRCS)
+ENV_SRCS = $(wildcard $(ENV_DIR)/*.c)
+ALL_SRCS = $(MAIN_SRC) $(NET_SRCS) $(HTTP_SRCS) $(ENV_SRCS)
 
 # Object files with unique names
 OBJECTS = $(foreach src,$(ALL_SRCS),$(call src_to_obj,$(src)))
