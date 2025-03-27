@@ -1,34 +1,61 @@
-OBJECTS=hlistener.o hhandlerfunc.o main.o hserver.o hhandle.o
+# Compiler
+CC = cc
+CFLAGS = -I$(SRC_DIR)/lib  # Include path for headers
 
-go:
-	make clean
-	make compile
-	make run
-	
+# Directories
+SRC_DIR = src
+LIB_DIR = $(SRC_DIR)/lib
+NET_DIR = $(LIB_DIR)/net
+HTTP_DIR = $(LIB_DIR)/http
+BIN_DIR = bin
+OBJ_DIR = $(BIN_DIR)/obj
+
+# Function to convert source path to unique object file path
+define src_to_obj
+$(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(1))
+endef
+
+# Source files
+MAIN_SRC = $(SRC_DIR)/main.c
+NET_SRCS = $(wildcard $(NET_DIR)/*.c)
+HTTP_SRCS = $(wildcard $(HTTP_DIR)/*.c)
+ALL_SRCS = $(MAIN_SRC) $(NET_SRCS) $(HTTP_SRCS)
+
+# Object files with unique names
+OBJECTS = $(foreach src,$(ALL_SRCS),$(call src_to_obj,$(src)))
+
+# Default target
+go: init compile run
+
+# Compilation target
 compile: $(OBJECTS)
-	cc -o bin/server $(OBJECTS)
+	$(CC) $(CFLAGS) -o $(BIN_DIR)/server $^
 
+# Run target
 run:
-	./bin/server
+	./$(BIN_DIR)/server
 
+# Initialization target
 init:
-	mkdir bin
+	mkdir -p $(OBJ_DIR)
 
-main.o:
-	cc -c main.c -o main.o
+# Generic rule to compile any source file to an object file
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-hhandle.o:
-	cc -c http_handle.c -o hhandle.o
+$(OBJ_DIR)/%.o: $(NET_DIR)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-hserver.o:
-	cc -c http_server.c -o hserver.o
+$(OBJ_DIR)/%.o: $(HTTP_DIR)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-hlistener.o:
-	cc -c http_listener.c -o hlistener.o
-
-hhandlerfunc.o:
-	cc -c http_handlerfunc.c -o hhandlerfunc.o
-
+# Clean target
 clean:
-	rm -f $(OBJECTS)
-	rm -f bin/server
+	rm -rf $(OBJ_DIR) $(BIN_DIR)/server
+
+# Debugging target to print variables
+print-%:
+	@echo '$*=$($*)'

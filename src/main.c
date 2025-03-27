@@ -1,5 +1,4 @@
-#include <stdio.h>
-#include "header.h"
+#include "./lib/net/header.h"
 
 const int PORT = 9000;
 
