@@ -11,3 +11,13 @@ To compile and run the project, simply use:
 ```bash
 make
 ```
+
+## Port Issues
+
+If the port is already in use, set a custom port by declaring the `PORT` environment variable:
+
+```bash
+export PORT=9000
+```
+
+The default port is 9000.
