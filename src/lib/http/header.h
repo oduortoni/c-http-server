@@ -39,9 +39,8 @@ typedef struct HttpServer HttpServer;
 int handleFunc(char *pattern, HandlerFunc handler);
 int listenAndServe(char *host, Router router);
 int handle(Router router, Client client);
-int handle_connection(Client client);
+int handle_connection(void *components, Client client);
 
 extern HttpServer http;
-extern Router router;
 
 #endif // _HTTP_HEADER_H

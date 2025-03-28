@@ -1,11 +1,10 @@
 #include "header.h"
 
 HttpServer http = {listenAndServe, handleFunc};
-Router router = {0};
 
-int listenAndServe(char *host, Router rtr) {
-    router = rtr;
-    Processor processor = {handle_connection};
+int listenAndServe(char *host, Router router) {
+  printf("RouteD %s\n", router.patterns[1]);
+    Processor processor = {handle_connection, &router};
     serve(host, processor);
     return 0;
 }

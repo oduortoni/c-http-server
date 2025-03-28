@@ -27,8 +27,8 @@ int serve(char *host, Processor processor) {
       printf("Accepted connection from %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
 
       Client client = {client_conn};
-
-      processor.handle_connection(client);
+      
+      processor.handle_connection(processor.components, client);
     }
 
     return 0;

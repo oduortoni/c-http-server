@@ -14,7 +14,8 @@ struct Client {
 typedef struct Client Client;
 
 struct Processor {
-    int (*handle_connection)(Client client);
+    int (*handle_connection)(void*, Client);
+    void *components;
 };
 typedef struct Processor Processor;
 

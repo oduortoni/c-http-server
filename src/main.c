@@ -25,12 +25,11 @@ int main() {
     }
 
     http.HandleFunc("/", Index);
+    http.HandleFunc("/about", About);
 
-    // char* patterns[50] = {"/", "/about"};
-    // HandlerFunc handlers[50] = {Index, About};
-    // Router router = {patterns, handlers};
+    Router router = {{"/","/about",NULL}, {Index,About,NULL}};
+    printf("Route: %s\n", router.patterns[1]);
 
-    Router router = {0};
     http.ListenAndServe(hostname, router);
 
     printf("Server listening on %d\n", PORT);
