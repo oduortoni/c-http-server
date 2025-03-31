@@ -21,3 +21,13 @@ export PORT=9000
 ```
 
 The default port is 9000.
+
+## Documentation
+
+Comprehensive documentation is available in the [docs](docs) folder. The documentation includes:
+
+- [Core Documentation](docs/DOCUMENTATION.md) - Beginner-friendly explanation of how the server works
+- [Visual Guide](docs/VISUAL_GUIDE.md) - Diagrams illustrating the server architecture
+- [Practical Examples](docs/EXAMPLES.md) - Code examples for extending the server
+
+See the [docs README](docs/README.md) for more information.
