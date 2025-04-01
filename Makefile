@@ -5,6 +5,7 @@ CFLAGS = -I$(SRC_DIR)/lib  # Include path for headers
 # Directories
 SRC_DIR = src
 LIB_DIR = $(SRC_DIR)/lib
+APP_DIR = $(SRC_DIR)/app
 NET_DIR = $(LIB_DIR)/net
 HTTP_DIR = $(LIB_DIR)/http
 ENV_DIR = $(LIB_DIR)/env
@@ -21,7 +22,8 @@ MAIN_SRC = $(SRC_DIR)/main.c
 NET_SRCS = $(wildcard $(NET_DIR)/*.c)
 HTTP_SRCS = $(wildcard $(HTTP_DIR)/*.c)
 ENV_SRCS = $(wildcard $(ENV_DIR)/*.c)
-ALL_SRCS = $(MAIN_SRC) $(NET_SRCS) $(HTTP_SRCS) $(ENV_SRCS)
+APP_SRCS = $(wildcard $(APP_DIR)/*.c)
+ALL_SRCS = $(MAIN_SRC) $(NET_SRCS) $(HTTP_SRCS) $(ENV_SRCS) $(APP_SRCS)
 
 # Object files with unique names
 OBJECTS = $(foreach src,$(ALL_SRCS),$(call src_to_obj,$(src)))

@@ -63,24 +63,19 @@ Request* parse_http_request(const char* raw_request) {
             }
             
             case PARSE_HEADER_NAME: {
-                // Check for empty line indicating end of headers
                 if (*p == '\r' || *p == '\n') {
-                    // Skip CRLF
                     if (*p == '\r') p++;
                     if (*p == '\n') p++;
                     
-                    // Check if we should expect a body
+                    // Check for Content-Length
                     for (int i = 0; i < req->header_count; i++) {
                         if (strcasecmp(req->headers[i].name, "Content-Length") == 0) {
                             content_length = atoi(req->headers[i].value);
                         }
                     }
                     
-                    if (content_length > 0 && content_length < MAX_BODY_LEN) {
-                        state = PARSE_BODY;
-                    } else {
-                        state = PARSE_COMPLETE;
-                    }
+                    state = (content_length > 0 && content_length < MAX_BODY_LEN) ? 
+                          PARSE_BODY : PARSE_COMPLETE;
                     break;
                 }
                 
@@ -91,17 +86,15 @@ Request* parse_http_request(const char* raw_request) {
                 
                 current_name = req->headers[req->header_count].name;
                 while (*p && *p != ':' && !isspace(*p)) {
-                    if (current_name - req->headers[req->header_count].name < MAX_HEADER_NAME_LEN - 1) {
+                    if (current_name - req->headers[req->header_count].name < (MAX_HEADER_LEN/2) - 1) {
                         *current_name++ = *p;
                     }
                     p++;
                 }
                 *current_name = '\0';
                 
-                // Skip colon and any whitespace after it
-                while (*p && (*p == ':' || isspace(*p))) {
-                    p++;
-                }
+                // Skip colon and whitespace
+                while (*p && (*p == ':' || isspace(*p))) p++;
                 
                 current_value = req->headers[req->header_count].value;
                 state = PARSE_HEADER_VALUE;
@@ -110,7 +103,7 @@ Request* parse_http_request(const char* raw_request) {
             
             case PARSE_HEADER_VALUE: {
                 while (*p && *p != '\r' && *p != '\n') {
-                    if (current_value - req->headers[req->header_count].value < MAX_HEADER_VALUE_LEN - 1) {
+                    if (current_value - req->headers[req->header_count].value < (MAX_HEADER_LEN/2) - 1) {
                         *current_value++ = *p;
                     }
                     p++;
@@ -128,9 +121,10 @@ Request* parse_http_request(const char* raw_request) {
             
             case PARSE_BODY: {
                 size_t bytes_remaining = strlen(p);
-                size_t bytes_to_copy = (content_length < bytes_remaining) ? content_length : bytes_remaining;
+                size_t bytes_to_copy = (content_length < bytes_remaining) ? 
+                                     content_length : bytes_remaining;
                 
-                if (bytes_to_copy > 0) {
+                if (bytes_to_copy > 0 && bytes_to_copy < MAX_BODY_LEN) {
                     memcpy(req->body, p, bytes_to_copy);
                     req->body_length = bytes_to_copy;
                     req->body[bytes_to_copy] = '\0';
@@ -147,7 +141,7 @@ Request* parse_http_request(const char* raw_request) {
         }
     }
     
-    if (state == PARSE_ERROR) {
+    if (state == PARSE_ERROR || req->header_count >= MAX_HEADERS) {
         free(req);
         return NULL;
     }
