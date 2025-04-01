@@ -75,6 +75,7 @@ typedef struct Router Router;
 struct HttpServer {
     int (*ListenAndServe)(char *host, Router *router);
     int (*HandleFunc)(char *pattern, HandlerFunc handler);
+    Router *router;
 };
 typedef struct HttpServer HttpServer;
 
