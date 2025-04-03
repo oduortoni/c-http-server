@@ -16,6 +16,25 @@
 #define MAX_BODY_LEN       4096
 #define MAX_STATUS_LEN     64
 #define MAX_RESPONSE_LEN   8192
+#define MAX_FORM_FIELDS 20
+#define MAX_FIELD_LENGTH 256
+
+struct FormField {
+    char name[MAX_FIELD_LENGTH];
+    char value[MAX_FIELD_LENGTH];
+};
+typedef struct FormField FormField;
+struct FormData {
+    FormField fields[MAX_FORM_FIELDS];
+    int count;
+};
+typedef struct FormData FormData;
+
+void url_decode(char* dest, const char* src);
+void parse_form_data(const char* body, FormData* form_data);
+const char* get_form_value(const FormData* form_data, const char* name);
+
+
 
 typedef struct Header {
     char name[MAX_HEADER_LEN/2];
