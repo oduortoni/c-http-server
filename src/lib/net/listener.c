@@ -19,6 +19,8 @@ int listener(char* host, int port) {
         exit(1);
     }
 
+    int reuse = 1;
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
     socklen_t addr_len = sizeof(address);
     if (bind(sock, (struct sockaddr*)&address, addr_len) < 0) {
         perror("bind() failed");
