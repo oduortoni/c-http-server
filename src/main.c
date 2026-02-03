@@ -22,15 +22,11 @@ int main() {
         sprintf(hostname, "%s:%d", host_url, PORT);
     }
 
-    /* -------------------------------------------------------------------- */
-    /* TODO - implement a way to add routes one by one with more control*/
     http.HandleFunc("/", Index);
     http.HandleFunc("/about", About);
     http.HandleFunc("/404", Error404);
 
     http.ListenAndServe(hostname, NULL);
-    /* -------------------------------------------------------------------- */
-
 
     // Router router = {{"/404", "/", "/about", NULL}, {Error404, Index, About, NULL}};
     // printf("Route: %s\n", router.patterns[1]);
