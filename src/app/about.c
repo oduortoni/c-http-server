@@ -1,6 +1,6 @@
 #include "header.h"
 
-char html[] =
+static char const html[] =
 "<!DOCTYPE html>"
 "<html>"
 "<head>"

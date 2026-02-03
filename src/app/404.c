@@ -1,6 +1,6 @@
 #include "header.h"
 
-char html[] =
+static char const html_template[] =
 "<html><body style='height:100vh;display:flex;justify-content:center;align-items:center;'>"
 "<h1>404 Not Found</h1>"
 "<p>The requested path '%s' was not found on this server.</p>"
@@ -15,7 +15,7 @@ int Error404(ResponseWriter* w, Request* r) {
     
     // Construct response body
     char body[1024];
-    snprintf(body, sizeof(body), html, r->path);
+    snprintf(body, sizeof(body), html_template, r->path);
     
     // Write response body
     w->WriteString(w, body);
