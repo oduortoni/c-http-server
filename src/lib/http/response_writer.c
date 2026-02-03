@@ -28,6 +28,13 @@ void InitResponseWriter(ResponseWriter* rw) {
 
 // Header management functions
 void SetHeader(ResponseWriter* rw, const char* name, const char* value) {
+    for (size_t i = 0; i < rw->header_count; ++i) {
+        if (strcmp(rw->headers[i].name, name) == 0) {
+            Header* h = &rw->headers[i];
+            strncpy(h->value, value, sizeof(h->value));
+            return;
+        }
+    }
     if(rw->header_count < MAX_HEADERS) {
         Header* h = &rw->headers[rw->header_count++];
         strncpy(h->name, name, sizeof(h->name));
