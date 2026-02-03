@@ -1,6 +1,6 @@
 #include "header.h"
 
-const char* html = 
+static char const html_template[] =
 "<!DOCTYPE html>"
 "<html>"
 "<head>"
@@ -10,7 +10,7 @@ const char* html =
 "        .form-group { margin-bottom: 15px; }"
 "        label { display: block; margin-bottom: 5px; font-weight: bold; }"
 "        input[type='text'], input[type='email'], textarea {"
-"            width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"
+"            width: 100%%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"
 "            box-sizing: border-box;"
 "        }"
 "        button {"
@@ -44,7 +44,7 @@ const char* html =
 "</body>"
 "</html>";
 
-const char *r_message = 
+static char const response_template[] =
 "<div class='response success'>"
 "<h3>Thank you for your submission!</h3>"
 "<p><strong>Name:</strong> %s</p>"
@@ -64,11 +64,11 @@ int Index(ResponseWriter* w, Request* r) {
         const char* email = get_form_value(&form_data, "email");
         const char* message = get_form_value(&form_data, "message");
 
-        snprintf(response_message, sizeof(response_message), r_message, name, email, message);
+        snprintf(response_message, sizeof(response_message), response_template, name, email, message);
     }
 
     char response[8192];
-    snprintf(response, sizeof(response), html, response_message);
+    snprintf(response, sizeof(response), html_template, response_message);
 
     SetStatus(w, 200, "OK");
     SetHeader(w, "Content-Type", "text/html");

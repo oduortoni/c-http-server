@@ -19,6 +19,8 @@
 #define MAX_FORM_FIELDS 20
 #define MAX_FIELD_LENGTH 256
 
+#define ARRAY_LEN(a) ( sizeof(a) / sizeof(*(a)) )
+
 struct FormField {
     char name[MAX_FIELD_LENGTH];
     char value[MAX_FIELD_LENGTH];

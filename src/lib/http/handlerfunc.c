@@ -2,17 +2,14 @@
 
 int handleFunc(char *pattern, HandlerFunc handler) {
     if(!http.router) {
-        http.router = (Router*)malloc(sizeof(Router));
+        http.router = (Router*)malloc(sizeof(*http.router));
     }
-    for(int i = 0; i < 50; i++) {
-        if(!http.router->patterns[i]) {
-            int n = strlen(pattern);
-            http.router->patterns[i] = malloc(n+1);
-            strncpy(http.router->patterns[i], pattern, n);
-            http.router->patterns[i][n] = '\0';
-            http.router->handlers[i] = handler;
-            break;
-        }
+    // append route for pattern/handler to the router
+    for (uint i = 0; i < ARRAY_LEN(http.router->patterns); i++) {
+        if (http.router->patterns[i]) continue;
+        http.router->patterns[i] = strdup(pattern);
+        http.router->handlers[i] = handler;
+        break;
     }
     return 0;
 }
