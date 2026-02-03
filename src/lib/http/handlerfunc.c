@@ -1,15 +1,34 @@
 #include "header.h"
 
-int handleFunc(char *pattern, HandlerFunc handler) {
-    if(!http.router) {
-        http.router = (Router*)malloc(sizeof(*http.router));
+RouterStatus handleFunc(const char *pattern, HandlerFunc handler) {
+    if (!pattern || !handler) {
+        return ROUTER_INVALID;
     }
-    // append route for pattern/handler to the router
-    for (uint i = 0; i < ARRAY_LEN(http.router->patterns); i++) {
-        if (http.router->patterns[i]) continue;
+
+    if (!http.router) {
+        http.router = calloc(1, sizeof *http.router);
+        if (!http.router) {
+            return ROUTER_NOMEM;
+        }
+    }
+
+    for (size_t i = 0; i < ARRAY_LEN(http.router->patterns); i++) {
+        if (http.router->patterns[i]) {
+            // prevent duplicate route registration
+            if (strcmp(http.router->patterns[i], pattern) == 0) {
+                return ROUTER_DUPLICATE;
+            }
+            continue;
+        }
+
         http.router->patterns[i] = strdup(pattern);
+        if (!http.router->patterns[i]) {
+            return ROUTER_NOMEM;
+        }
+
         http.router->handlers[i] = handler;
-        break;
+        return ROUTER_OK;
     }
-    return 0;
+
+    return ROUTER_FULL;
 }

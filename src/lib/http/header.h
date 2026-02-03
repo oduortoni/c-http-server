@@ -93,14 +93,22 @@ struct Router {
 };
 typedef struct Router Router;
 
+typedef enum RouterStatus {
+    ROUTER_OK = 0,
+    ROUTER_FULL = -1,
+    ROUTER_NOMEM = -2,
+    ROUTER_INVALID = -3,
+    ROUTER_DUPLICATE = -4
+} RouterStatus;
+
 struct HttpServer {
     int (*ListenAndServe)(char *host, Router *router);
-    int (*HandleFunc)(char *pattern, HandlerFunc handler);
+    RouterStatus (*HandleFunc)(const char *pattern, HandlerFunc handler);
     Router *router;
 };
 typedef struct HttpServer HttpServer;
 
-int handleFunc(char *pattern, HandlerFunc handler);
+RouterStatus handleFunc(const char *pattern, HandlerFunc handler);
 int listenAndServe(char *host, Router *router);
 int handle(Router *router, Client client);
 int handle_connection(void *components, Client client);
