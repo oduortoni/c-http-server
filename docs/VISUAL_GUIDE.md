@@ -118,7 +118,7 @@ src/
     |
     |-- env/ (Environment variables)
         |-- header.h (Definitions)
-        |-- get_env_variable.c (Env var access)
+        |-- env_get_variable.c (Env var access)
 ```
 
 ## 7. Function Call Flow

@@ -26,6 +26,7 @@ The default port is 9000.
 
 Comprehensive documentation is available in the [docs](docs) folder. The documentation includes:
 
+- [Server Architecture](docs/SERVER_ARCHITECTURE.md) - Layered architecture design and protocol separation
 - [Core Documentation](docs/DOCUMENTATION.md) - Beginner-friendly explanation of how the server works
 - [Visual Guide](docs/VISUAL_GUIDE.md) - Diagrams illustrating the server architecture
 - [Practical Examples](docs/EXAMPLES.md) - Code examples for extending the server

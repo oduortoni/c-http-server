@@ -1,6 +1,6 @@
 #include "header.h"
 
-int listener(char* host, int port) {
+int net_listener(char* host, int port) {
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     if(sock < 0) {
         perror("socket() could not create a socket");

@@ -1,6 +1,6 @@
 #include "header.h"
 
-int handle(Router* router, Client client) {
+int http_handle(Router* router, Client client) {
     char buffer[8192];
 
     puts("ONE");
