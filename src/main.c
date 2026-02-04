@@ -3,22 +3,29 @@
 #include "./app/header.h"
 
 const int PORT = 9000;
-const char* HOST = "127.0.0.1";
+const char *HOST = "127.0.0.1";
 
-int main() {
+int main()
+{
     char hostname[120];
 
     char host_url[80];
-    const char *host = get_env_variable("HOST");
-    if(host) {
+    const char *host = env_get_variable("HOST");
+    if (host)
+    {
         sprintf(host_url, "%s", host);
-    } else {
+    }
+    else
+    {
         sprintf(host_url, "%s", HOST);
     }
-    const char *port = get_env_variable("PORT");
-    if(port) {
+    const char *port = env_get_variable("PORT");
+    if (port)
+    {
         sprintf(hostname, "%s:%s", host_url, port);
-    } else {
+    }
+    else
+    {
         sprintf(hostname, "%s:%d", host_url, PORT);
     }
 

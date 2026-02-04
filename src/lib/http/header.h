@@ -110,8 +110,8 @@ typedef struct HttpServer HttpServer;
 
 RouterStatus handleFunc(const char *pattern, HandlerFunc handler);
 int listenAndServe(char *host, Router *router);
-int handle(Router *router, Client client);
-int handle_connection(void *components, Client client);
+int http_handle(Router *router, Client client);
+int http_handle_connection(RequestContext *context, Client client);
 
 extern HttpServer http;
 

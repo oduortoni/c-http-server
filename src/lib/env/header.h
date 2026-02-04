@@ -4,6 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-const char* get_env_variable(const char* var_name);
+const char *env_get_variable(const char *var_name);
 
 #endif // _ENV_HEADER_H

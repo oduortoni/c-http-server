@@ -7,20 +7,27 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
-struct Client {
+struct Client
+{
     // char address[128];
     int socket;
 };
 typedef struct Client Client;
 
-struct Processor {
-    int (*handle_connection)(void*, Client);
-    void *components;
+struct RequestContext
+{
+    void *router;
 };
-typedef struct Processor Processor;
+typedef struct RequestContext RequestContext;
 
-int serve(char *host, Processor processor);
-int listener(char* host, int port);
+/*
+ * A protocol specific handler.
+ * A function that knows how to handle the specific protocol e.g http, etc.
+ */
+typedef int (*ProtocolHandler)(RequestContext *context, Client client);
+
+int net_serve(char *host, ProtocolHandler handler, RequestContext *context);
+int net_listener(char *host, int port);
 void str_split(const char *input, char delimiter, char *head, char *tail);
 
 #endif // _HEADER_H
