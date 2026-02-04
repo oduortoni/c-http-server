@@ -12,7 +12,7 @@ int listenAndServe(char *host, Router *router)
     router = http.router;
   }
   puts("http/server.c");
-  for (int i = 0; i < 4; i++)
+  for (size_t i = 0; i < ARRAY_LEN(router->patterns) && router->patterns[i]; i++)
   {
     printf("SERVERT: %s\n", router->patterns[i]);
   }
