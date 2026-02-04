@@ -32,16 +32,18 @@ int http_handle(Router* router, Client client) {
 
     // Find and call the handler for the request path
     int success = 0;
-    for (int i = 0; i < ARRAY_LEN(router->patterns) && router->patterns[i]; i++) {
-        if (strcmp(req->path, router->patterns[i]) == 0) {
+    for (size_t i = 0; i < ARRAY_LEN(router->patterns) && router->patterns[i]; i++) {
+        req->path_regex = &router->regex_patterns[i];
+        if (regexec(req->path_regex, req->path, ARRAY_LEN(req->path_matches), req->path_matches, 0) == 0) {
             router->handlers[i](&rw, req);
             success = 1;
             break; // Stop searching once a matching handler is found
         }
     }
     if(!success) { // no path matched, invoke /404
-        for (int i = 0; i < ARRAY_LEN(router->patterns) && router->patterns[i]; i++) {
-            if (strcmp("/404", router->patterns[i]) == 0) {
+        req->path_regex = NULL;
+        for (size_t i = 0; i < ARRAY_LEN(router->patterns) && router->patterns[i]; i++) {
+            if (strcmp("^/404$", router->patterns[i]) == 0) {
                 router->handlers[i](&rw, req);
                 break; // Stop searching once the 404 handler is found
             }
