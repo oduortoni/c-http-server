@@ -1,5 +1,7 @@
 #include "header.h"
 
+#include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -28,7 +30,7 @@ void InitResponseWriter(ResponseWriter* rw) {
 
 // Header management functions
 void SetHeader(ResponseWriter* rw, const char* name, const char* value) {
-    for (size_t i = 0; i < rw->header_count; ++i) {
+    for (int i = 0; i < rw->header_count; ++i) {
         if (strcmp(rw->headers[i].name, name) == 0) {
             Header* h = &rw->headers[i];
             strncpy(h->value, value, sizeof(h->value));
@@ -71,8 +73,9 @@ char* BuildResponse(ResponseWriter* rw) {
     
     // Body
     if(rw->body_length > 0) {
-        size_t to_copy = rw->body_length < (response + sizeof(response) - ptr) ? 
-                        rw->body_length : (response + sizeof(response) - ptr);
+        assert(rw->body_length < INT64_MAX);
+        size_t to_copy = (long)rw->body_length < (response + sizeof(response) - ptr)
+            ? (long)rw->body_length : (response + sizeof(response) - ptr);
         memcpy(ptr, rw->body, to_copy);
         ptr += to_copy;
     }

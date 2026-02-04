@@ -1,6 +1,9 @@
 #include "header.h"
 
-HttpServer http = {listenAndServe, handleFunc};
+HttpServer http = {
+  .ListenAndServe = listenAndServe,
+  .HandleFunc = handleFunc,
+};
 
 int listenAndServe(char *host, Router *router) {
   if(router == NULL) {

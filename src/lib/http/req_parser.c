@@ -1,4 +1,5 @@
 #include "header.h"
+#include <assert.h>
 
 Request* parse_http_request(const char* raw_request) {
     Request* req = (Request*)malloc(sizeof(Request));
@@ -121,8 +122,9 @@ Request* parse_http_request(const char* raw_request) {
             
             case PARSE_BODY: {
                 size_t bytes_remaining = strlen(p);
-                size_t bytes_to_copy = (content_length < bytes_remaining) ? 
-                                     content_length : bytes_remaining;
+                assert(content_length >= 0);
+                size_t bytes_to_copy = ((size_t)content_length < bytes_remaining)
+                    ? (size_t)content_length : bytes_remaining;
                 
                 if (bytes_to_copy > 0 && bytes_to_copy < MAX_BODY_LEN) {
                     memcpy(req->body, p, bytes_to_copy);
