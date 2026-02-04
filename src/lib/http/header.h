@@ -3,10 +3,8 @@
 
 #include "../net/header.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <ctype.h>
+#include <regex.h>
 
 #define MAX_HEADERS        20
 #define MAX_METHOD_LEN     8
@@ -51,6 +49,8 @@ typedef struct Request {
     int header_count;
     char body[MAX_BODY_LEN];
     size_t body_length;
+    regex_t *path_regex;
+    regmatch_t path_matches[20];
 } Request;
 
 typedef struct ResponseWriter {
@@ -89,6 +89,7 @@ typedef int(*HandlerFunc)(ResponseWriter *w, Request *r);
 
 struct Router {
     char* patterns[50];
+    regex_t regex_patterns[50];
     HandlerFunc handlers[50];
 };
 typedef struct Router Router;
@@ -98,7 +99,8 @@ typedef enum RouterStatus {
     ROUTER_FULL = -1,
     ROUTER_NOMEM = -2,
     ROUTER_INVALID = -3,
-    ROUTER_DUPLICATE = -4
+    ROUTER_DUPLICATE = -4,
+    ROUTER_INVALID_REGEX = -5,
 } RouterStatus;
 
 struct HttpServer {

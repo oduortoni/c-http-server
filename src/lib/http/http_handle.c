@@ -3,11 +3,11 @@
 int http_handle(Router* router, Client client) {
     char buffer[8192];
 
-    puts("ONE");
+    puts("Handling client connection");
 
     ssize_t bytes_read = read(client.socket, buffer, sizeof(buffer) - 1);
 
-    puts("TWO");
+    puts("Request received");
 
     if (bytes_read < 0) {
         perror("read() failed");
@@ -22,42 +22,50 @@ int http_handle(Router* router, Client client) {
         close(client.socket);
         return -1;
     }
-    puts("THREE");
+
+    puts("Request parsed");
 
     // Prepare ResponseWriter
     ResponseWriter rw;
     InitResponseWriter(&rw);
 
-    puts("FOUR");
+    printf("Looking for handler for '%s'\n", req->path);
 
     // Find and call the handler for the request path
-    int success = 0;
-    for (int i = 0; i < 50; i++) {
-        if (router->patterns[i] && strcmp(req->path, router->patterns[i]) == 0) {
-            router->handlers[i](&rw, req);
-            success = 1;
+    HandlerFunc handler = nullptr;
+    for (size_t i = 0; i < ARRAY_LEN(router->patterns) && router->patterns[i]; i++) {
+        req->path_regex = &router->regex_patterns[i];
+        if (regexec(req->path_regex, req->path, ARRAY_LEN(req->path_matches), req->path_matches, 0) == 0) {
+            printf("Using '%s' hander\n", router->patterns[i]);
+            handler = router->handlers[i];
             break; // Stop searching once a matching handler is found
         }
     }
-    if(!success) { // no path matched, invoke /404
-        for (int i = 0; i < 50; i++) {
-            if (router->patterns[i] && strcmp("/404", router->patterns[i]) == 0) {
-                router->handlers[i](&rw, req);
+    if (handler == nullptr) { // no path matched, invoke /404
+        req->path_regex = nullptr;
+        for (size_t i = 0; i < ARRAY_LEN(router->patterns) && router->patterns[i]; i++) {
+            if (strcmp("^/404$", router->patterns[i]) == 0) {
+                printf("Using '%s' hander\n", router->patterns[i]);
+                handler = router->handlers[i];
                 break; // Stop searching once the 404 handler is found
             }
         }
     }
-    puts("FIVE");
+    if (handler) {
+        handler(&rw, req);
 
-    // Build the HTTP response
-    char response[8192];
-    char* resp_ptr = BuildResponse(&rw);
-    strncpy(response, resp_ptr, sizeof(response));
+        puts("Handler processed");
 
-    // Send the response to the client
-    ssize_t bytes_written = write(client.socket, response, strlen(response));
-    if (bytes_written < 0) {
-        perror("write() failed");
+        // Build the HTTP response
+        char response[8192];
+        char* resp_ptr = BuildResponse(&rw);
+        strncpy(response, resp_ptr, sizeof(response));
+
+        // Send the response to the client
+        ssize_t bytes_written = write(client.socket, response, strlen(response));
+        if (bytes_written < 0) {
+            perror("write() failed");
+        }
     }
 
     free_request(req);

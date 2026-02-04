@@ -21,6 +21,10 @@ RouterStatus handleFunc(const char *pattern, HandlerFunc handler) {
             continue;
         }
 
+        if (regcomp(&http.router->regex_patterns[i], pattern, REG_EXTENDED)) {
+            return ROUTER_INVALID_REGEX;
+        }
+
         http.router->patterns[i] = strdup(pattern);
         if (!http.router->patterns[i]) {
             return ROUTER_NOMEM;

@@ -29,9 +29,10 @@ int main()
         sprintf(hostname, "%s:%d", host_url, PORT);
     }
 
-    http.HandleFunc("/", Index);
-    http.HandleFunc("/about", About);
-    http.HandleFunc("/404", Error404);
+    http.HandleFunc("^/$", Index);
+    http.HandleFunc("^/about$", About);
+    http.HandleFunc("^/404$", Error404);
+    http.HandleFunc("^/static/(.*)$", Static);
 
     http.ListenAndServe(hostname, NULL);
 

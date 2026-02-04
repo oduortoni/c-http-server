@@ -2,10 +2,10 @@
 #include <assert.h>
 
 Request* parse_http_request(const char* raw_request) {
-    Request* req = (Request*)malloc(sizeof(Request));
+    Request* req = malloc(sizeof *req);
     if (!req) return NULL;
     
-    memset(req, 0, sizeof(Request));
+    memset(req, 0, sizeof *req);
     req->header_count = 0;
     req->body_length = 0;
     
