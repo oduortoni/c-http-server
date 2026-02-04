@@ -17,6 +17,7 @@ static char const html[] =
 "</html>";
 
 int About(ResponseWriter* w, Request* r) {
+    (void)r;
     // Set status and headers
     SetStatus(w, 200, "OK");
     SetHeader(w, "Content-Type", "text/html");
