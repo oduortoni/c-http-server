@@ -1,7 +1,7 @@
 # Compiler
 CC = cc
 CFLAGS = -I$(SRC_DIR)/lib  # Include path for headers
-CFLAGS += -std=gnu23
+CFLAGS += -std=gnu2x
 CFLAGS += -Wall -Wextra -pedantic
 CFLAGS += -fsanitize=address -fsanitize=undefined
 
