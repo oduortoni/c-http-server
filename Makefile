@@ -1,6 +1,7 @@
 # Compiler
-CC ?= cc
-CFLAGS = -I$(SRC_DIR)/lib  # Include path for headers
+CC := gcc-14
+CFLAGS = -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=700  # Enable GNU and POSIX extensions with C23
+CFLAGS += -I$(SRC_DIR)/lib  # Include path for headers
 CFLAGS += -ggdb3
 CFLAGS += -std=gnu23
 CFLAGS += -Wall -Wextra -pedantic
@@ -59,6 +60,14 @@ $(OBJ_DIR)/%.o: $(NET_DIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/%.o: $(HTTP_DIR)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/%.o: $(ENV_DIR)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/%.o: $(APP_DIR)/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
