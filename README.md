@@ -32,3 +32,22 @@ Comprehensive documentation is available in the [docs](docs) folder. The documen
 - [Practical Examples](docs/EXAMPLES.md) - Code examples for extending the server
 
 See the [docs README](docs/README.md) for more information.
+
+## Contribution
+
+To ensure consistent code style, `clang-format` is used. To ensure you will not
+forget to execute it, download latest
+[`pre-commit-*.pyz`](https://github.com/pre-commit/pre-commit/releases) 
+```console
+wget https://github.com/pre-commit/pre-commit/releases/download/v4.5.1/pre-commit-4.5.1.pyz
+```
+and run
+```console
+python pre-commit-*.pyz install
+```
+from the project's root directory.
+
+Now, each time you'll execute `git commit` pre-commit will launch
+`clang-format` and only allow you to perform the commit if all files are
+conformed, otherwise you'll have to add all files that were modified and
+repeat.
