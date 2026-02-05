@@ -14,7 +14,6 @@ die() {
 SERVER_PID=$!
 
 PORT=${PORT:-9000}
-export PORT
 HOST="http://localhost:$PORT"
 
 # Wait at most 5 seconds for the server to start
