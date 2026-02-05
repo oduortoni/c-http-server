@@ -1,0 +1,37 @@
+name: C Build and Test
+
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest # GitHub-hosted runner with Ubuntu
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4 # Action to clone your repository's code
+
+    - name: Install dependencies
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      id: cache-apt
+      with:
+        packages: build-essential curl gcc-14
+        version: 1.0
+
+    # - name: Cache /var/cache/apt/archives
+    #   id: cache-apt
+    #   path: /var/cache/apt/archives
+    #   key: ${{ runner.os }}-apt-packages-${{ hashFiles('.github/workflows/apt-packages.txt') }}
+    #
+    # - if: ${{ steps.cache-apt.outputs.cache-hit != 'true' }}
+    #   name: Install dependencies
+    #   run: |
+    #     sudo apt update
+    #     sudo apt install -y $(< .github/workflows/apt-packages.txt)
+
+    - name: Build C code
+      run: |
+        make init compile CC=gcc-14
+
+    - name: Run tests
+      run: |
+        ./tests/integration-tests.sh
