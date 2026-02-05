@@ -10,7 +10,8 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4 # Action to clone your repository's code
 
-    - uses: awalsh128/cache-apt-pkgs-action@latest
+    - name: Install dependencies
+      uses: awalsh128/cache-apt-pkgs-action@latest
       id: cache-apt
       with:
         packages: build-essential curl gcc-14
