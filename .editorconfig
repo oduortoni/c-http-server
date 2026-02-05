@@ -1,0 +1,11 @@
+# see: https://editorconfig.org
+root = true
+
+[*.{c,h}]
+indent_style = space
+indent_size = 8
+insert_final_newline = true
+
+[*.{html}]
+indent_style = space
+indent_size = 4

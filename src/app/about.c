@@ -1,5 +1,6 @@
 #include "header.h"
 
+// clang-format off
 static char const html[] =
 "<!DOCTYPE html>"
 "<html>"
@@ -15,14 +16,17 @@ static char const html[] =
 "    <p>It supports basic HTTP requests and serves static content.</p>"
 "</body>"
 "</html>";
+// clang-format on
 
-int About(ResponseWriter* w, [[maybe_unused]] Request* r) {
-    // Set status and headers
-    SetStatus(w, 200, "OK");
-    SetHeader(w, "Content-Type", "text/html");
-    
-    // Write the About page to the response
-    w->WriteString(w, html);
-    
-    return 0;
+int
+About(ResponseWriter* w, [[maybe_unused]] Request* r)
+{
+        // Set status and headers
+        SetStatus(w, 200, "OK");
+        SetHeader(w, "Content-Type", "text/html");
+
+        // Write the About page to the response
+        w->WriteString(w, html);
+
+        return 0;
 }
