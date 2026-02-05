@@ -1,3 +1,8 @@
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "header.h"
 
 #define READ_CHUNK 4096
