@@ -13,11 +13,11 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y build-essential curl # Installs gcc, g++, and make
+        sudo apt install -y build-essential curl gcc-14 # Installs gcc, g++, and make
 
     - name: Build C code
       run: |
-        make init compile
+        make init compile CC=gcc-14
 
     - name: Run tests
       run: |
