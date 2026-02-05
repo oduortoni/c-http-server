@@ -9,9 +9,9 @@ char*
 template_load(const char* filename)
 {
         FILE* file = fopen(filename, "rb");
-        if (!file) return NULL;
+        if (!file) return nullptr;
 
-        char* buffer    = NULL;
+        char* buffer    = nullptr;
         size_t size     = 0;
         size_t capacity = 0;
 
@@ -22,15 +22,14 @@ template_load(const char* filename)
                 }
 
                 if (size + BUFSIZ + 1 > capacity) {
-                        size_t new_capacity = capacity ? capacity * 2 : BUFSIZ;
-                        if (new_capacity > MAX_TEMPLATE_SIZE + 1)
-                                new_capacity = MAX_TEMPLATE_SIZE + 1;
+                        capacity = capacity ? capacity * 2 : BUFSIZ;
+                        if (capacity > MAX_TEMPLATE_SIZE + 1)
+                                capacity = MAX_TEMPLATE_SIZE + 1;
 
-                        char* tmp = realloc(buffer, new_capacity);
+                        char* tmp = realloc(buffer, capacity);
                         if (!tmp) goto fail;
 
-                        buffer   = tmp;
-                        capacity = new_capacity;
+                        buffer = tmp;
                 }
 
                 size_t n = fread(buffer + size, 1, BUFSIZ, file);
@@ -52,7 +51,7 @@ fail:
          */
         free(buffer);
         fclose(file);
-        return NULL;
+        return nullptr;
 }
 
 void
