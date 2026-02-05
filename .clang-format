@@ -1,0 +1,14 @@
+---
+BasedOnStyle: Google
+IndentWidth: 8
+BreakAfterReturnType: TopLevelDefinitions
+BreakBeforeBraces: Linux
+IndentCaseLabels: false
+AlignConsecutiveAssignments:
+  Enabled: true
+  AcrossEmptyLines: true
+  AcrossComments: true
+AlignTrailingComments:
+  Kind: Always
+  OverEmptyLines: 2
+---
