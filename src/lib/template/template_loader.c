@@ -5,8 +5,6 @@
 
 #include "header.h"
 
-#define READ_CHUNK 4096
-
 char*
 template_load(const char* filename)
 {
@@ -18,14 +16,13 @@ template_load(const char* filename)
         size_t capacity = 0;
 
         for (;;) {
-                if (size + READ_CHUNK > MAX_TEMPLATE_SIZE) {
+                if (size + BUFSIZ > MAX_TEMPLATE_SIZE) {
                         errno = EFBIG;
                         goto fail;
                 }
 
-                if (size + READ_CHUNK + 1 > capacity) {
-                        size_t new_capacity =
-                            capacity ? capacity * 2 : READ_CHUNK;
+                if (size + BUFSIZ + 1 > capacity) {
+                        size_t new_capacity = capacity ? capacity * 2 : BUFSIZ;
                         if (new_capacity > MAX_TEMPLATE_SIZE + 1)
                                 new_capacity = MAX_TEMPLATE_SIZE + 1;
 
@@ -36,10 +33,10 @@ template_load(const char* filename)
                         capacity = new_capacity;
                 }
 
-                size_t n = fread(buffer + size, 1, READ_CHUNK, file);
+                size_t n = fread(buffer + size, 1, BUFSIZ, file);
                 size += n;
 
-                if (n < READ_CHUNK) {
+                if (n < BUFSIZ) {
                         if (ferror(file)) goto fail;
                         break;
                 }
