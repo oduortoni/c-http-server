@@ -13,7 +13,8 @@ die() {
 ./bin/server &
 SERVER_PID=$!
 
-PORT=9000
+PORT=${PORT:-9000}
+export PORT
 HOST="http://localhost:$PORT"
 
 # Wait at most 5 seconds for the server to start
@@ -28,4 +29,4 @@ for i in {1..25}; do
 done
 
 # Run Hurl tests
-hurl --test tests/integration-tests.hurl
+hurl --test --variable PORT="$PORT" tests/integration-tests.hurl
