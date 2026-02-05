@@ -2,6 +2,7 @@ BUILD_TYPE ?= release
 
 # Compiler
 CC ?= cc
+CC := gcc-14
 
 CFLAGS = -I$(SRC_DIR)/lib  # Include path for headers
 CFLAGS += -std=gnu23
@@ -67,6 +68,14 @@ $(OBJ_DIR)/%.o: $(NET_DIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/%.o: $(HTTP_DIR)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/%.o: $(ENV_DIR)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/%.o: $(APP_DIR)/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
