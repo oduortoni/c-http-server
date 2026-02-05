@@ -1,12 +1,20 @@
+BUILD_TYPE ?= release
+
 # Compiler
 CC ?= cc
+
 CFLAGS = -I$(SRC_DIR)/lib  # Include path for headers
-CFLAGS += -ggdb3
 CFLAGS += -std=gnu23
 CFLAGS += -Wall -Wextra -pedantic
-CFLAGS += -Werror
-CFLAGS += -fsanitize=address -fsanitize=undefined
-
+# Some warnings and errors can only be catched at specific level of
+# optimization. For testing purposed it is better to stay consistent.
+OPTIMIZATION_LEVEL ?= -O2
+CFLAGS += $(OPTIMIZATION_LEVEL)
+ifeq (${BUILD_TYPE}, debug)
+	CFLAGS += -ggdb3
+	CFLAGS += -Werror
+	CFLAGS += -fsanitize=address -fsanitize=undefined
+endif
 
 # Directories
 SRC_DIR = src
@@ -16,7 +24,7 @@ NET_DIR = $(LIB_DIR)/net
 HTTP_DIR = $(LIB_DIR)/http
 ENV_DIR = $(LIB_DIR)/env
 BIN_DIR = bin
-OBJ_DIR = $(BIN_DIR)/obj
+OBJ_DIR := $(BIN_DIR)/$(BUILD_TYPE)
 
 # Function to convert source path to unique object file path
 define src_to_obj
@@ -34,20 +42,20 @@ ALL_SRCS = $(MAIN_SRC) $(NET_SRCS) $(HTTP_SRCS) $(ENV_SRCS) $(APP_SRCS)
 # Object files with unique names
 OBJECTS = $(foreach src,$(ALL_SRCS),$(call src_to_obj,$(src)))
 
+# Initialization should be unconditioned
+$(shell mkdir -p $(OBJ_DIR))
+
 # Default target
-go: init compile run
+all: $(BIN_DIR)/server run
 
 # Compilation target
-compile: $(OBJECTS)
+$(BIN_DIR)/server: $(OBJECTS)
 	$(CC) $(CFLAGS) -o $(BIN_DIR)/server $^
 
 # Run target
+.PHONY: run
 run:
 	./$(BIN_DIR)/server
-
-# Initialization target
-init:
-	mkdir -p $(OBJ_DIR)
 
 # Generic rule to compile any source file to an object file
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
@@ -69,3 +77,7 @@ clean:
 # Debugging target to print variables
 print-%:
 	@echo '$*=$($*)'
+
+.PHONY: debug
+debug:
+	$(MAKE) BUILD_TYPE=debug
