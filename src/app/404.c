@@ -15,7 +15,7 @@ int Error404(ResponseWriter* w, Request* r) {
     
     // Construct response body
     char body[1024];
-    snprintf(body, sizeof(body), html_template, r->path);
+    snprintf(body, sizeof(body) - 1, html_template, r->path);
     
     // Write response body
     w->WriteString(w, body);

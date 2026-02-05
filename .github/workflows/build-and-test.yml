@@ -26,7 +26,7 @@ jobs:
 
     - name: Build C code
       run: |
-        make init compile CC=gcc-14
+        make bin/server CC=gcc-14 BUILD_TYPE=debug
 
     - name: Run tests
       run: |
