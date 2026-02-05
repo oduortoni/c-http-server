@@ -1,0 +1,24 @@
+name: C Build and Test
+
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest # GitHub-hosted runner with Ubuntu
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4 # Action to clone your repository's code
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y build-essential curl # Installs gcc, g++, and make
+
+    - name: Build C code
+      run: |
+        make init compile
+
+    - name: Run tests
+      run: |
+        ./tests/integration-tests.sh
