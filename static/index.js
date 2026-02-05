@@ -1,1 +1,1 @@
-document.getElementById("response").innerHTML = "We are making progress!";
+response.innerHTML = "Kool!";
