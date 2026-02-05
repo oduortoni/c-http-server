@@ -1,1 +1,1 @@
-alert("Hello, World!");
+document.getElementById("response").innerHTML = "We are making progress!";
