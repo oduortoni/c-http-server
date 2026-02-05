@@ -2,7 +2,6 @@ BUILD_TYPE ?= release
 
 # Compiler
 CC ?= cc
-CC := gcc-14
 
 CFLAGS = -I$(SRC_DIR)/lib  # Include path for headers
 CFLAGS += -std=gnu23

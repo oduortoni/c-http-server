@@ -7,7 +7,7 @@ static inline bool string_ends_with(char const *str, char const *suffix)
 {
     size_t str_len = strlen(str);
     size_t suffix_len = strlen(suffix);
-    return suffix_len <= str_len && memcmp(str + str_len - suffix_len, suffix, suffix_len) == 0;
+    return suffix_len < str_len && memcmp(str + str_len - suffix_len, suffix, suffix_len) == 0;
 }
 
 static char const *get_mime_type(char const *filename)
