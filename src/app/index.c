@@ -64,11 +64,11 @@ int Index(ResponseWriter* w, Request* r) {
         const char* email = get_form_value(&form_data, "email");
         const char* message = get_form_value(&form_data, "message");
 
-        snprintf(response_message, sizeof(response_message), response_template, name, email, message);
+        snprintf(response_message, sizeof(response_message) - 1, response_template, name, email, message);
     }
 
     char response[8192];
-    snprintf(response, sizeof(response), html_template, response_message);
+    snprintf(response, sizeof(response) - 1, html_template, response_message);
 
     SetStatus(w, 200, "OK");
     SetHeader(w, "Content-Type", "text/html");

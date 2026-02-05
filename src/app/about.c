@@ -16,8 +16,7 @@ static char const html[] =
 "</body>"
 "</html>";
 
-int About(ResponseWriter* w, Request* r) {
-    (void)r;
+int About(ResponseWriter* w, [[maybe_unused]] Request* r) {
     // Set status and headers
     SetStatus(w, 200, "OK");
     SetHeader(w, "Content-Type", "text/html");
