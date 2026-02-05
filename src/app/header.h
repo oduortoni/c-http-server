@@ -2,7 +2,6 @@
 #define _APP_H
 
 #include "../lib/http/header.h"
-#include <stdbool.h>
 
 int Index(ResponseWriter *w, Request *r);
 int About(ResponseWriter *w, Request *r);
