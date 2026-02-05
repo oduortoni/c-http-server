@@ -1,5 +1,6 @@
 #include "header.h"
 
+// clang-format off
 static char const response_template[] =
     "<div class='response success'>"
     "<h3>Thank you for your submission!</h3>"
