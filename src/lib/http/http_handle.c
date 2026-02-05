@@ -57,11 +57,10 @@ int http_handle(Router* router, Client client) {
         puts("Handler processed");
 
         // Build the HTTP response
-        char response[8192];
-        char* resp_ptr = BuildResponse(&rw);
-        strncpy(response, resp_ptr, sizeof(response));
+        char* response = BuildResponse(&rw);
 
         // Send the response to the client
+        // TODO: `strlen` will not work for binary data, e.g. pdf files
         ssize_t bytes_written = write(client.socket, response, strlen(response));
         if (bytes_written < 0) {
             perror("write() failed");
