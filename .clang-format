@@ -11,4 +11,5 @@ AlignConsecutiveAssignments:
 AlignTrailingComments:
   Kind: Always
   OverEmptyLines: 2
+InsertNewlineAtEOF: true
 ---
