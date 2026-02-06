@@ -1,6 +1,9 @@
 name: C Build and Test
 
-on: [push, pull_request]
+on:
+  pull_request:
+  push:
+    branch: main
 
 jobs:
   build-and-test:
@@ -14,15 +17,9 @@ jobs:
       uses: awalsh128/cache-apt-pkgs-action@latest
       id: cache-apt
       with:
-        packages: build-essential curl gcc-14
+        packages: build-essential curl gcc-14 hurl
         version: 1.0
-
-    - name: Install Hurl
-      run: |
-        cd /tmp
-        VERSION=7.1.0
-        curl --location --remote-name https://github.com/Orange-OpenSource/hurl/releases/download/$VERSION/hurl_${VERSION}_amd64.deb
-        sudo apt update && sudo apt install ./hurl_${VERSION}_amd64.deb
+        add-repository: ppa:lepapareil/hurl
 
     - name: Build C code
       run: |
