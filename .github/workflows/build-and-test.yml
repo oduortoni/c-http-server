@@ -15,8 +15,8 @@ jobs:
 
     - name: Test presense of apt-add-repository
       run: |
-        apt-add-repository ppa:lepapareil/hurl
-        apt update
+        sudo apt-add-repository ppa:lepapareil/hurl
+        sudo apt update
         # apt install -y hurl
 
     - name: Install dependencies
