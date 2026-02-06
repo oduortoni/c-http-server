@@ -1,4 +1,5 @@
 BUILD_TYPE ?= release
+MAKEFLAGS += --jobs=$(shell nproc)
 
 # Compiler
 CC ?= cc
