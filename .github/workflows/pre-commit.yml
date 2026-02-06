@@ -1,6 +1,9 @@
 name: Enforce C Code Style
 
-on: [pull_request, push]
+on:
+  pull_request:
+  push:
+    branch: main
 
 jobs:
   pre-commit:

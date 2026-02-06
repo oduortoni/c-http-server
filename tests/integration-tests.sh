@@ -28,4 +28,7 @@ for i in {1..25}; do
 done
 
 # Run Hurl tests
-hurl --test --variable PORT="$PORT" tests/integration-tests.hurl
+if [ -z "$HURL" ]; then
+  HURL="hurl"
+fi
+"$HURL" --test --variable PORT="$PORT" tests/integration-tests.hurl
