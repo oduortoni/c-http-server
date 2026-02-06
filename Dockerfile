@@ -31,6 +31,10 @@ RUN VERSION=7.1.0 && \
 # 4. Install pre-commit globally via pip
 RUN pip3 install --break-system-packages pre-commit
 
+# 5. Adds missing pkg-config
+RUN apt-get update && apt-get install -y pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
 # Set workspace for GitHub Actions
 WORKDIR /github/workspace
 
