@@ -15,7 +15,9 @@ jobs:
 
     - name: Test presense of apt-add-repository
       run: |
-        command -v apt-add-repository
+        apt-add-repository ppa:lepapareil/hurl
+        apt update
+        # apt install -y hurl
 
     - name: Install dependencies
       uses: awalsh128/cache-apt-pkgs-action@master
