@@ -1,5 +1,0 @@
--std=gnu23
--Wall
--Wextra
--pedantic
--I./src/lib/

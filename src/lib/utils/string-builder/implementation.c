@@ -43,23 +43,22 @@ sb__correct(struct StringBuilder* sb)
         return true;
 }
 
+#define buffer sb->ascii.data + sb->ascii.size
+
 bool
 sb_appendf(struct StringBuilder* sb, char const* fmt, ...)
 {
         if (!sb__correct(sb)) return false;
 
-        va_list args, tmp_args;
-        va_start(args, fmt);
-
-        char* buffer     = sb->ascii.data + sb->ascii.size;
+        va_list args;
         size_t available = sb->capacity - sb->ascii.size;
 
-        va_copy(tmp_args, args);
         // n < 0 on error
         // n == strlen of the data to be written
         // n >= available on overflow
+        va_start(args, fmt);
         int n = vsnprintf(buffer, available, fmt, args);
-        va_end(tmp_args);
+        va_end(args);
 
         if (n < 0 || !sb__ensure_capacity(sb, sb->ascii.size + n)) {
                 goto fail;
@@ -68,20 +67,18 @@ sb_appendf(struct StringBuilder* sb, char const* fmt, ...)
         // Check for possible overflow
         // SAFETY: previous condition prevents negative values
         if ((size_t)n >= available) {
-                va_copy(tmp_args, args);
+                va_start(args, fmt);
                 n = vsnprintf(buffer, n + 1, fmt, args);
-                va_end(tmp_args);
+                va_end(args);
 
                 if (n < 0) goto fail;
         }
 
         sb->ascii.size += n;
 
-        va_end(args);
         return true;
 
 fail:
-        va_end(args);
         free(sb->ascii.data);
         bzero(sb, sizeof *sb);
         return false;
@@ -93,7 +90,8 @@ sb_append_binary(struct StringBuilder* sb, unsigned char const* data,
 {
         if (!sb__correct(sb)) return false;
         if (!sb__ensure_capacity(sb, sb->binary.size + size)) return false;
-        memcpy(sb->binary.data, data, size);
+        memcpy(buffer, data, size);
+        sb->binary.size += size;
         sb->contains_binary_data = true;
         return true;
 }
