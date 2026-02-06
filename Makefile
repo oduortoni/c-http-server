@@ -55,7 +55,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 
 # Clean target
 clean:
-	rm -rf $(OBJ_DIR) $(BIN_DIR)/server
+	rm -rf $(BIN_DIR)
 
 # Debugging target to print variables
 print-%:
