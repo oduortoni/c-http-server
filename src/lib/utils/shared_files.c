@@ -18,9 +18,15 @@ read_entire_file(char const* filename)
         if (!file || stat(filename, &st) == -1 || st.st_size == 0) {
                 return (struct String){0};
         }
-        char* buf = malloc(st.st_size);
-        if (fread(buf, 1, st.st_size, file) <= 0) {
-                return (struct String){.ptr = buf};
+        char* buf = malloc(st.st_size + 1);
+        if (!buf) {
+                return (struct String){0};
         }
-        return (struct String){buf, st.st_size};
+        size_t n = fread(buf, 1, st.st_size, file);
+        if (n <= 0) {
+                free(buf);
+                return (struct String){0};
+        }
+        buf[n] = '\0';
+        return (struct String){buf, n};
 }
