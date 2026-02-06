@@ -2,7 +2,6 @@
 #define _UTILS_HEADER_H
 
 #include <stddef.h>
-#include <stdio.h>
 #include <string.h>
 
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(*(a)))

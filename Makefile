@@ -85,7 +85,7 @@ $(OBJ_DIR)/%.o: $(APP_DIR)/%.c
 
 # Clean target
 clean:
-	rm -rf $(OBJ_DIR) $(BIN_DIR)/server $(BIN_DIR)/obj
+	rm -rf $(OBJ_DIR) $(BIN_DIR)/server
 
 # Debugging target to print variables
 print-%:
