@@ -4,7 +4,8 @@
 #include <ctype.h>
 #include <regex.h>
 
-#include "../net/header.h"
+#include "net/header.h"
+#include "utils/header.h"
 
 #define MAX_HEADERS 20
 #define MAX_METHOD_LEN 8
@@ -16,8 +17,6 @@
 #define MAX_RESPONSE_LEN 8192
 #define MAX_FORM_FIELDS 20
 #define MAX_FIELD_LENGTH 256
-
-#define ARRAY_LEN(a) (sizeof(a) / sizeof(*(a)))
 
 struct FormField {
         char name[MAX_FIELD_LENGTH];
@@ -33,6 +32,7 @@ typedef struct FormData FormData;
 void url_decode(char* dest, const char* src);
 void parse_form_data(const char* body, FormData* form_data);
 const char* get_form_value(const FormData* form_data, const char* name);
+char const* get_mime_type(char const* filename);
 
 typedef struct Header {
         char name[MAX_HEADER_LEN / 2];

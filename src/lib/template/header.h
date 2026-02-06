@@ -1,0 +1,4 @@
+#ifndef _TEMPLATE_HEADER_H
+#define _TEMPLATE_HEADER_H
+
+#endif  // _TEMPLATE_HEADER_H

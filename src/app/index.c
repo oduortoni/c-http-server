@@ -1,51 +1,7 @@
 #include "header.h"
+#include "utils/header.h"
 
 // clang-format off
-static char const html_template[] =
-    "<!DOCTYPE html>"
-    "<html>"
-    "<head>"
-    "    <title>C HTTP Server Form</title>"
-    "    <style>"
-    "        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }"
-    "        .form-group { margin-bottom: 15px; }"
-    "        label { display: block; margin-bottom: 5px; font-weight: bold; }"
-    "        input[type='text'], input[type='email'], textarea {"
-    "            width: 100%%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"
-    "            box-sizing: border-box;"
-    "        }"
-    "        button {"
-    "            background-color: #4CAF50; color: white; padding: 10px 15px;"
-    "            border: none; border-radius: 4px; cursor: pointer;"
-    "        }"
-    "        button:hover { background-color: #45a049; }"
-    "        .response { margin-top: 20px; padding: 10px; border-radius: 4px; }"
-    "        .success { background-color: #dff0d8; color: #3c763d; }"
-    "        .error { background-color: #f2dede; color: #a94442; }"
-    "    </style>"
-    "</head>"
-    "<body>"
-    "    <h1>Sample Form</h1>"
-    "    <form method='POST' action='/'>"
-    "        <div class='form-group'>"
-    "            <label for='name'>Name:</label>"
-    "            <input type='text' id='name' name='name' required>"
-    "        </div>"
-    "        <div class='form-group'>"
-    "            <label for='email'>Email:</label>"
-    "            <input type='email' id='email' name='email' required>"
-    "        </div>"
-    "        <div class='form-group'>"
-    "            <label for='message'>Message:</label>"
-    "            <textarea id='message' name='message' rows='4' required></textarea>"
-    "        </div>"
-    "        <button type='submit'>Submit</button>"
-    "    </form>"
-    "%s" // This will be replaced with the response message
-    "<script src='/static/index.js'></script>"
-    "</body>"
-    "</html>";
-
 static char const response_template[] =
     "<div class='response success'>"
     "<h3>Thank you for your submission!</h3>"
@@ -58,24 +14,50 @@ static char const response_template[] =
 int
 Index(ResponseWriter* w, Request* r)
 {
+        const char* index_path      = TEMPLATE_PATH "index.html";
+        struct String html_template = read_entire_file(index_path);
+        if (!html_template.ptr) {
+                /* nothing to clean up */
+                SetStatus(w, 500, "Internal Server Error");
+                w->WriteString(w, "Template not found");
+                return -1;
+        }
+
         FormData form_data         = {0};
         char response_message[512] = "";
 
         if (strcmp(r->method, "POST") == 0) {
-                printf("Form submitted with data:\n%s\n", r->body);
                 parse_form_data(r->body, &form_data);
 
                 const char* name    = get_form_value(&form_data, "name");
                 const char* email   = get_form_value(&form_data, "email");
                 const char* message = get_form_value(&form_data, "message");
 
-                snprintf(response_message, sizeof(response_message) - 1,
-                         response_template, name, email, message);
+                if (!name || !email || !message) {
+                        SetStatus(w, 400, "Missing form fields");
+                        free(html_template.ptr);
+                        return -1;
+                }
+
+                int n = snprintf(response_message, sizeof(response_message),
+                                 response_template, name, email, message);
+
+                if (n < 0 || n >= (int)sizeof(response_message)) {
+                        SetStatus(w, 500, "Response too large");
+                        free(html_template.ptr);
+                        return -1;
+                }
         }
 
         char response[8192];
-        snprintf(response, sizeof(response) - 1, html_template,
-                 response_message);
+        int n = snprintf(response, sizeof(response), html_template.ptr,
+                         response_message);
+        free(html_template.ptr);
+
+        if (n < 0 || n >= (int)sizeof(response)) {
+                SetStatus(w, 500, "Rendered page too large");
+                return -1;
+        }
 
         SetStatus(w, 200, "OK");
         SetHeader(w, "Content-Type", "text/html");

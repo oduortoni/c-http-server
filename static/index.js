@@ -1,1 +1,1 @@
-alert("Hello, World!");
+response.innerHTML = "Kool!";
