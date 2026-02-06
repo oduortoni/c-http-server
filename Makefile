@@ -29,10 +29,7 @@ $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(1))
 endef
 
 # Source files
-ALL_SRCS  = $(wildcard $(SRC_DIR)/*.c)
-ALL_SRCS += $(wildcard $(SRC_DIR)/*/*.c)
-ALL_SRCS += $(wildcard $(SRC_DIR)/*/*/*.c)
-ALL_SRCS += $(wildcard $(SRC_DIR)/*/*/*/*.c)
+ALL_SRCS  = $(shell find $(SRC_DIR) -name '*.c')
 
 # Object files with unique names
 OBJECTS = $(foreach src,$(ALL_SRCS),$(call src_to_obj,$(src)))
@@ -68,12 +65,8 @@ CXX_FLAGS += $(shell pkg-config --cflags gtest)
 CXX_LIBS = $(shell pkg-config --libs gtest)
 
 TESTS_DIR = tests
-TESTS  = $(wildcard $(TESTS_DIR)/*.hpp)
-TESTS += $(wildcard $(TESTS_DIR)/*/*.hpp)
-TESTS += $(wildcard $(TESTS_DIR)/*/*.hpp)
-TESTS += $(wildcard $(TESTS_DIR)/*/*/*.hpp)
-TESTS += $(wildcard $(TESTS_DIR)/*/*/*/*.hpp)
-TESTS += $(wildcard $(TESTS_DIR)/*/*/*/*/*.hpp)
+TESTS  = $(shell find $(TESTS_DIR) -name '*.hpp')
+
 TEST_OBJECTS := $(filter-out $(OBJ_DIR)/main.o, $(OBJECTS))
 
 $(BIN_DIR)/gtest: $(TESTS) $(TEST_OBJECTS)
