@@ -13,6 +13,10 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4 # Action to clone your repository's code
 
+    - name: Test presense of apt-add-repository
+      run: |
+        command -v apt-add-repository
+
     - name: Install dependencies
       uses: awalsh128/cache-apt-pkgs-action@master
       id: cache-apt
