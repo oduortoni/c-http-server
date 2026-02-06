@@ -21,6 +21,7 @@ SRC_DIR = src
 LIB_DIR = $(SRC_DIR)/lib
 APP_DIR = $(SRC_DIR)/app
 TEMPLATE_DIR = $(LIB_DIR)/template
+UTILS_DIR = $(LIB_DIR)/utils
 NET_DIR = $(LIB_DIR)/net
 HTTP_DIR = $(LIB_DIR)/http
 ENV_DIR = $(LIB_DIR)/env
@@ -39,8 +40,9 @@ HTTP_SRCS = $(wildcard $(HTTP_DIR)/*.c)
 ENV_SRCS = $(wildcard $(ENV_DIR)/*.c)
 APP_SRCS = $(wildcard $(APP_DIR)/*.c)
 TEMPLATE_SRCS = $(wildcard $(TEMPLATE_DIR)/*.c)
+UTILS_SRCS = $(wildcard $(LIB_DIR)/utils/*.c)
 
-ALL_SRCS = $(MAIN_SRC) $(NET_SRCS) $(HTTP_SRCS) $(ENV_SRCS) $(APP_SRCS) $(TEMPLATE_SRCS)
+ALL_SRCS = $(MAIN_SRC) $(NET_SRCS) $(HTTP_SRCS) $(ENV_SRCS) $(APP_SRCS) $(TEMPLATE_SRCS) $(UTILS_SRCS)
 
 # Object files with unique names
 OBJECTS = $(foreach src,$(ALL_SRCS),$(call src_to_obj,$(src)))

@@ -1,6 +1,6 @@
-#include "./app/header.h"
-#include "./lib/env/header.h"
-#include "./lib/http/header.h"
+#include "app/header.h"
+#include "lib/env/header.h"
+#include "lib/http/header.h"
 
 const int PORT   = 9000;
 const char* HOST = "127.0.0.1";

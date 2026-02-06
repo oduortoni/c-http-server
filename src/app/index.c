@@ -1,4 +1,5 @@
 #include "header.h"
+#include "utils/header.h"
 
 // clang-format off
 static char const response_template[] =
@@ -13,8 +14,9 @@ static char const response_template[] =
 int
 Index(ResponseWriter* w, Request* r)
 {
-        char* html_template = template_load("src/app/templates/index.html");
-        if (!html_template) {
+        const char* index_path      = TEMPLATE_PATH "index.html";
+        struct String html_template = read_entire_file(index_path);
+        if (!html_template.ptr) {
                 /* nothing to clean up */
                 SetStatus(w, 500, "Internal Server Error");
                 w->WriteString(w, "Template not found");
@@ -33,7 +35,7 @@ Index(ResponseWriter* w, Request* r)
 
                 if (!name || !email || !message) {
                         SetStatus(w, 400, "Missing form fields");
-                        template_free(html_template);
+                        free(html_template.ptr);
                         return -1;
                 }
 
@@ -42,15 +44,15 @@ Index(ResponseWriter* w, Request* r)
 
                 if (n < 0 || n >= (int)sizeof(response_message)) {
                         SetStatus(w, 500, "Response too large");
-                        template_free(html_template);
+                        free(html_template.ptr);
                         return -1;
                 }
         }
 
         char response[8192];
-        int n = snprintf(response, sizeof(response), html_template,
+        int n = snprintf(response, sizeof(response), html_template.ptr,
                          response_message);
-        template_free(html_template);
+        free(html_template.ptr);
 
         if (n < 0 || n >= (int)sizeof(response)) {
                 SetStatus(w, 500, "Rendered page too large");
