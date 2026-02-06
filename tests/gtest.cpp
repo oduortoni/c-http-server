@@ -6,5 +6,6 @@ int
 main()
 {
         testing::InitGoogleTest();
-        (void)RUN_ALL_TESTS();
+        [[maybe_unused]]
+        int ok = RUN_ALL_TESTS();
 }
