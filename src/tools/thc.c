@@ -6,27 +6,37 @@
 
 #include "utils/header.h"
 
-void
-print_escaped(const char* start, const char* end)
+bool
+print_escaped(char const* start, char const* end, struct StringBuilder* sb)
 {
+#define output(...)                                    \
+        do {                                           \
+                bool ok = sb_appendf(sb, __VA_ARGS__); \
+                if (!ok) return false;                 \
+        } while (0)
+
         for (auto p = start; p < end; ++p) {
                 switch (*p) {
                 case '\"':
-                        printf("\\\"");
+                        output("%s", "\\\"");
                         break;
                 case '\\':
-                        printf("\\\\");
+                        output("%s", "\\\\");
                         break;
                 case '\n':
-                        printf("\\\n");
+                        output("%s", "\\n");
                         break;
                 case '\r':
-                        printf("\\\r");
+                        output("%s", "\\r");
                         break;
                 default:
-                        putchar(*p);
+                        output("%c", *p);
                 }
         }
+
+        return true;
+
+#undef output
 }
 
 char*
@@ -41,66 +51,89 @@ trim(char* str)
 }
 
 int
-translate(const char* name, char* src)
+translate(const char* const name, char const* const src)
 {
         auto len = strlen(name);
         char guard[len + 1];
+        guard[len] = '\0';
         for (size_t i = 0; i < len; i++) {
                 guard[i] = toupper((unsigned char)name[i]);
                 if (guard[i] == '/') guard[i] = '_';
         }
-        guard[len] = '\0';
+
+        struct StringBuilder sb = {0};
+
+#define outputf(...)                                    \
+        do {                                            \
+                bool ok = sb_appendf(&sb, __VA_ARGS__); \
+                if (!ok) {                              \
+                        free(sb.ascii.data);            \
+                        return EXIT_FAILURE;            \
+                }                                       \
+        } while (0)
+#define output(...) outputf("%s", __VA_ARGS__)
+
+#define print_escaped(...)                            \
+        do {                                          \
+                bool ok = print_escaped(__VA_ARGS__); \
+                if (!ok) {                            \
+                        free(sb.ascii.data);          \
+                        return EXIT_FAILURE;          \
+                }                                     \
+        } while (0)
 
         // Header Guard
-        printf("#ifndef %s_H\n#define %s_H\n\n", guard, guard);
-        printf(
+        outputf("#ifndef %s_H\n#define %s_H\n\n", guard, guard);
+        output(
             "bool render_template("
             "struct Context* ctx, struct StringBuilder* sb);\n\n");
-        printf("#endif\n\n#ifdef IMPLEMENTATION\n\n");
-        printf("#define $ (*ctx)\n");
-        printf(
+        output("#endif\n\n#ifdef IMPLEMENTATION\n\n");
+        output("#define $ (*ctx)\n");
+        output(
             "#define sb_appendf(...) do { "
             "bool res = sb_appendf(__VA_ARGS__); if (!res) return false; "
             "} while(0)\n\n");
-        printf(
+        output(
             "bool\nrender_template("
             "struct Context* ctx, struct StringBuilder* sb)\n{\n");
 
-        char* cursor = src;
+        char const* cursor = src;
         while (*cursor) {
                 char* tag_open = strstr(cursor, "{{");
 
                 if (!tag_open) {
                         // Remainder of file
-                        printf("    sb_appendf(sb, \"");
-                        print_escaped(cursor, cursor + strlen(cursor));
-                        printf("\");\n");
+                        output("    sb_appendf(sb, \"");
+                        print_escaped(cursor, cursor + strlen(cursor), &sb);
+                        output("\");\n");
                         break;
                 }
 
                 // 1. Literal text before tag
+                struct String text_before_tag = {0};
                 if (tag_open > cursor) {
-                        printf("    sb_appendf(sb, \"");
-                        print_escaped(cursor, tag_open);
-                        printf("\");\n");
+                        text_before_tag.data = (char*)cursor;
+                        text_before_tag.size = tag_open - cursor;
                 }
 
                 // 2. Parse Tag
                 char* tag_contents = tag_open + 2;
                 char* tag_close    = strstr(tag_contents, "}}");
+
                 if (!tag_close) {
                         int starting_line = 1;
-                        for (; src < tag_open; ++src) {
-                                starting_line += *src == '\n';
+                        for (auto it = src; it < tag_open; ++it) {
+                                starting_line += *it == '\n';
                         }
                         fprintf(stderr,
                                 "ERROR: Template statement has unmatched "
-                                "parentecies starting from line %d:\n",
-                                starting_line);
+                                "parentecies\n%s:%d:\n",
+                                name, starting_line);
                         auto tail_len = strlen(tag_open);
                         if (tail_len > 40) tail_len = 40;
                         tag_open[tail_len] = '\0';
                         fprintf(stderr, "%s", tag_open);
+                        free(sb.ascii.data);
                         return EXIT_FAILURE;
                 }
 
@@ -108,38 +141,62 @@ translate(const char* name, char* src)
                     (tag_close > tag_contents && *(tag_close - 1) == '-');
 
                 // Extract inner content
-                size_t content_len = (size_t)(tag_close - tag_contents);
+                size_t content_len = tag_close - tag_contents;
                 if (line_elimination) content_len--;
 
                 char* raw_content = strndup(tag_contents, content_len);
                 char* code        = trim(raw_content);
 
-                // Logic Modes
-                if (strncmp(code, "$.", 2) == 0) {
-                        // String Mode shortcut
-                        printf("    sb_appendf(sb, \"%%s\", %s);\n", code);
-                } else if (code[0] == '\"') {
-                        // Format Mode shortcut
-                        printf("    sb_appendf(sb, %s);\n", code);
-                } else {
-                        // Raw Mode (C code)
-                        printf("    %s\n", code);
-                }
-
-                free(raw_content);
+                cursor            = tag_close + 2;
 
                 // 3. Handle Line Elimination
-                cursor = tag_close + 2;
                 if (line_elimination) {
-                        // Skip trailing whitespace and exactly one newline
-                        while (*cursor == ' ' || *cursor == '\t') cursor++;
-                        if (*cursor == '\r') cursor++;
-                        if (*cursor == '\n') cursor++;
+                        // Skip trailing white-spaces and exactly one newline
+                        while (isspace(*cursor) && *cursor != '\n') {
+                                cursor++;
+                        }
+                        if (*cursor == '\n') ++cursor;
+
+                        // Skip prepended white-spaces
+                        while (text_before_tag.size) {
+                                char last = text_before_tag
+                                                .data[text_before_tag.size - 1];
+                                if (isspace(last) && last != '\n') {
+                                        text_before_tag.size--;
+                                } else {
+                                        break;
+                                }
+                        }
                 }
+
+                // Output text before tag
+                if (text_before_tag.size) {
+                        output("    sb_appendf(sb, \"");
+                        print_escaped(
+                            text_before_tag.data,
+                            text_before_tag.data + text_before_tag.size, &sb);
+                        output("\");\n");
+                }
+
+                // Output tag body
+                if (strncmp(code, "$.", 2) == 0) {
+                        // String Mode shortcut
+                        outputf("    sb_appendf(sb, \"%%s\", %s);\n", code);
+                } else if (code[0] == '\"') {
+                        // Format Mode shortcut
+                        outputf("    sb_appendf(sb, %s);\n", code);
+                } else if (strlen(code)) {
+                        // Raw Mode (C code)
+                        outputf("    %s\n", code);
+                }
+                free(raw_content);
         }
 
-        printf("    return true;\n");
-        printf("}\n\n#undef sb_appendf\n#undef $\n#endif\n");
+        output("    return true;\n");
+        output("}\n\n#undef sb_appendf\n#undef $\n#endif\n");
+
+        printf("%s", sb.ascii.data);
+        free(sb.ascii.data);
 
         return EXIT_SUCCESS;
 }
