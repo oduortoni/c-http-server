@@ -15,9 +15,9 @@ int
 Index(ResponseWriter* w, Request* r)
 {
         struct Context ctx = {0};
+        FormData form_data = {0};
 
         if (strcmp(r->method, "POST") == 0) {
-                FormData form_data = {0};
                 parse_form_data(r->body, &form_data);
 
                 ctx.name           = get_form_value(&form_data, "name");
@@ -41,6 +41,7 @@ Index(ResponseWriter* w, Request* r)
         SetStatus(w, 200, "OK");
         SetHeader(w, "Content-Type", "text/html");
         w->WriteString(w, sb.ascii.data);
+        free(sb.ascii.data);
 
         return 0;
 }
