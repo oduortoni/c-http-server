@@ -16,7 +16,7 @@ Index(ResponseWriter* w, Request* r)
 {
         const char* index_path      = TEMPLATE_PATH "index.html";
         struct String html_template = read_entire_file(index_path);
-        if (!html_template.ptr) {
+        if (!html_template.data) {
                 /* nothing to clean up */
                 SetStatus(w, 500, "Internal Server Error");
                 w->WriteString(w, "Template not found");
@@ -35,7 +35,7 @@ Index(ResponseWriter* w, Request* r)
 
                 if (!name || !email || !message) {
                         SetStatus(w, 400, "Missing form fields");
-                        free(html_template.ptr);
+                        free(html_template.data);
                         return -1;
                 }
 
@@ -44,15 +44,15 @@ Index(ResponseWriter* w, Request* r)
 
                 if (n < 0 || n >= (int)sizeof(response_message)) {
                         SetStatus(w, 500, "Response too large");
-                        free(html_template.ptr);
+                        free(html_template.data);
                         return -1;
                 }
         }
 
         char response[8192];
-        int n = snprintf(response, sizeof(response), html_template.ptr,
+        int n = snprintf(response, sizeof(response), html_template.data,
                          response_message);
-        free(html_template.ptr);
+        free(html_template.data);
 
         if (n < 0 || n >= (int)sizeof(response)) {
                 SetStatus(w, 500, "Rendered page too large");

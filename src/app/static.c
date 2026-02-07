@@ -23,8 +23,8 @@ Static(ResponseWriter* w, Request* r)
         SetHeader(w, "Content-Type", get_mime_type(filename));
 
         struct String html = read_entire_file(filename);
-        w->Write(w, html.ptr, html.size);
-        free(html.ptr);
+        w->Write(w, html.data, html.size);
+        free(html.data);
 
         return 0;
 }

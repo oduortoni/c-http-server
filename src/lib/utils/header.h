@@ -4,12 +4,9 @@
 #include <stddef.h>
 #include <string.h>
 
-#define ARRAY_LEN(a) (sizeof(a) / sizeof(*(a)))
+#include "string-builder/header.h"
 
-struct String {
-        char* ptr;
-        size_t size;
-};
+#define ARRAY_LEN(a) (sizeof(a) / sizeof(*(a)))
 
 struct String read_entire_file(char const* filename);
 

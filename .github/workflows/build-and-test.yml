@@ -7,25 +7,13 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest # GitHub-hosted runner with Ubuntu
+    runs-on: ubuntu-latest
+    container:
+      image: koutoftimer/oduortoni-c-http-server-actions:latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4 # Action to clone your repository's code
-
-    - name: Test presense of apt-add-repository
-      run: |
-        sudo apt-add-repository ppa:lepapareil/hurl
-        sudo apt update
-        # apt install -y hurl
-
-    - name: Install dependencies
-      uses: awalsh128/cache-apt-pkgs-action@master
-      id: cache-apt
-      with:
-        packages: build-essential curl gcc-14 hurl
-        version: 1.0
-        add-repository: ppa:lepapareil/hurl
 
     - name: Build C code
       run: |
@@ -33,4 +21,5 @@ jobs:
 
     - name: Run tests
       run: |
+        make BUILD_TYPE=debug test    # unit tests
         ./tests/integration-tests.sh

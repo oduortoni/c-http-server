@@ -3,3 +3,4 @@ bin/*
 bin/server
 *.o
 pre-commit-*.pyz
+compile_commands.json

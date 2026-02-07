@@ -51,3 +51,10 @@ Now, each time you'll execute `git commit` pre-commit will launch
 `clang-format` and only allow you to perform the commit if all files are
 conformed, otherwise you'll have to add all files that were modified and
 repeat.
+
+If you are relying on `clangd` during development, you, probably, want to setup
+`compile_commands.json` locally. Recommended way is using `bear`:
+
+```
+bear -- make -B BUILD_TYPE=debug bin/server bin/gtest
+```
