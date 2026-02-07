@@ -44,10 +44,10 @@ trim(char* str)
 void
 translate(const char* name, char* src)
 {
-        char guard[256];
         auto len = strlen(name);
+        char guard[len + 1];
         for (size_t i = 0; i < len; i++) {
-                guard[i] = (char)toupper((unsigned char)name[i]);
+                guard[i] = toupper((unsigned char)name[i]);
                 if (guard[i] == '/') guard[i] = '_';
         }
         guard[len] = '\0';
@@ -55,16 +55,17 @@ translate(const char* name, char* src)
         // Header Guard
         printf("#ifndef %s_H\n#define %s_H\n\n", guard, guard);
         printf(
-            "bool render_template(struct Context* ctx, struct StringBuilder* "
-            "sb);\n\n");
+            "bool render_template("
+            "struct Context* ctx, struct StringBuilder* sb);\n\n");
         printf("#endif\n\n#ifdef IMPLEMENTATION\n\n");
         printf("#define $ (*ctx)\n");
         printf(
-            "#define sb_appendf(...) do { bool res = sb_appendf(__VA_ARGS__); "
-            "if (!res) return false; } while(0)\n\n");
+            "#define sb_appendf(...) do { "
+            "bool res = sb_appendf(__VA_ARGS__); if (!res) return false; "
+            "} while(0)\n\n");
         printf(
-            "bool\nrender_template(struct Context* ctx, struct StringBuilder* "
-            "sb)\n{\n");
+            "bool\nrender_template("
+            "struct Context* ctx, struct StringBuilder* sb)\n{\n");
 
         char* cursor = src;
         while (*cursor) {
