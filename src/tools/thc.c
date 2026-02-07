@@ -42,10 +42,10 @@ print_escaped(char const* start, char const* end, struct StringBuilder* sb)
 char*
 trim(char* str)
 {
-        while (isspace((unsigned char)*str)) str++;
+        while (isspace(*str)) str++;
         if (*str == 0) return str;
         char* end = str + strlen(str) - 1;
-        while (end > str && isspace((unsigned char)*end)) end--;
+        while (end > str && isspace(*end)) end--;
         end[1] = '\0';
         return str;
 }
@@ -97,13 +97,16 @@ translate(const char* const name, char const* const src)
             "bool\nrender_template("
             "struct Context* ctx, struct StringBuilder* sb)\n{\n");
 
-        char const* cursor = src;
+        char const* cursor        = src;
+        int indentation_level     = 1;
+        constexpr int indentation = 4;
         while (*cursor) {
                 char* tag_open = strstr(cursor, "{{");
 
                 if (!tag_open) {
                         // Remainder of file
-                        output("    sb_appendf(sb, \"");
+                        outputf("%*ssb_appendf(sb, \"",
+                                indentation_level * indentation, "");
                         print_escaped(cursor, cursor + strlen(cursor), &sb);
                         output("\");\n");
                         break;
@@ -171,7 +174,8 @@ translate(const char* const name, char const* const src)
 
                 // Output text before tag
                 if (text_before_tag.size) {
-                        output("    sb_appendf(sb, \"");
+                        outputf("%*ssb_appendf(sb, \"",
+                                indentation_level * indentation, "");
                         print_escaped(
                             text_before_tag.data,
                             text_before_tag.data + text_before_tag.size, &sb);
@@ -179,15 +183,29 @@ translate(const char* const name, char const* const src)
                 }
 
                 // Output tag body
+                size_t const code_len = strlen(code);
                 if (strncmp(code, "$.", 2) == 0) {
                         // String Mode shortcut
-                        outputf("    sb_appendf(sb, \"%%s\", %s);\n", code);
+                        outputf("%*ssb_appendf(sb, \"%%s\", %s);\n",
+                                indentation_level * indentation, "", code);
                 } else if (code[0] == '\"') {
                         // Format Mode shortcut
-                        outputf("    sb_appendf(sb, %s);\n", code);
-                } else if (strlen(code)) {
+                        outputf("%*ssb_appendf(sb, %s);\n",
+                                indentation_level * indentation, "", code);
+                } else if (code_len) {
                         // Raw Mode (C code)
-                        outputf("    %s\n", code);
+                        // count brackets balance for indentation
+                        int brackets = 0;
+                        for (size_t i = 0; i < code_len; ++i) {
+                                brackets += code[i] == '{';
+                                brackets -= code[i] == '}';
+                        }
+                        // decrease indentation before tag's body
+                        if (brackets < 0) indentation_level += brackets;
+                        outputf("%*s%s\n", indentation_level * indentation, "",
+                                code);
+                        // increase indentation after tag's body
+                        if (brackets > 0) indentation_level += brackets;
                 }
                 free(raw_content);
         }
