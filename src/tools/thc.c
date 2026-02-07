@@ -25,7 +25,6 @@ print_escaped(const char* start, const char* end)
                         break;
                 default:
                         putchar(*p);
-                        break;
                 }
         }
 }
@@ -41,7 +40,7 @@ trim(char* str)
         return str;
 }
 
-void
+int
 translate(const char* name, char* src)
 {
         auto len = strlen(name);
@@ -89,7 +88,21 @@ translate(const char* name, char* src)
                 // 2. Parse Tag
                 char* tag_contents = tag_open + 2;
                 char* tag_close    = strstr(tag_contents, "}}");
-                if (!tag_close) break;
+                if (!tag_close) {
+                        int starting_line = 1;
+                        for (; src < tag_open; ++src) {
+                                starting_line += *src == '\n';
+                        }
+                        fprintf(stderr,
+                                "ERROR: Template statement has unmatched "
+                                "parentecies starting from line %d:\n",
+                                starting_line);
+                        auto tail_len = strlen(tag_open);
+                        if (tail_len > 40) tail_len = 40;
+                        tag_open[tail_len] = '\0';
+                        fprintf(stderr, "%s", tag_open);
+                        return EXIT_FAILURE;
+                }
 
                 bool line_elimination =
                     (tag_close > tag_contents && *(tag_close - 1) == '-');
@@ -127,6 +140,8 @@ translate(const char* name, char* src)
 
         printf("    return true;\n");
         printf("}\n\n#undef sb_appendf\n#undef $\n#endif\n");
+
+        return EXIT_SUCCESS;
 }
 
 int
@@ -142,9 +157,10 @@ main(int argc, char** argv)
         char* ext      = strrchr(filename, '.');
         if (ext) *ext = '\0';
 
-        translate(filename, content.data);
+        auto exit_code = translate(filename, content.data);
 
         free(filename);
         free(content.data);
-        return 0;
+
+        return exit_code;
 }
