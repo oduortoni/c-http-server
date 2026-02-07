@@ -6,6 +6,9 @@
 
 #include "utils/header.h"
 
+int indentation_level     = 1;
+constexpr int indentation = 4;
+
 bool
 print_escaped(char const* start, char const* end, struct StringBuilder* sb)
 {
@@ -23,9 +26,19 @@ print_escaped(char const* start, char const* end, struct StringBuilder* sb)
                 case '\\':
                         output("%s", "\\\\");
                         break;
-                case '\n':
-                        output("%s", "\\n");
-                        break;
+                case '\n': {
+                        // combine newlines on single output line
+                        for (; p < end && *p == '\n'; ++p) {
+                                output("%s", "\\n");
+                        }
+                        if (p >= end || *p == '\0') break;
+
+                        // split multi-line string
+                        constexpr int quotes_index = sizeof("sb_appendf(sb,");
+                        output("\"\n%*s\"",
+                               indentation_level * indentation + quotes_index,
+                               "");
+                } break;
                 case '\r':
                         output("%s", "\\r");
                         break;
@@ -97,9 +110,7 @@ translate(const char* const name, char const* const src)
             "bool\nrender_template("
             "struct Context* ctx, struct StringBuilder* sb)\n{\n");
 
-        char const* cursor        = src;
-        int indentation_level     = 1;
-        constexpr int indentation = 4;
+        char const* cursor = src;
         while (*cursor) {
                 char* tag_open = strstr(cursor, "{{");
 
