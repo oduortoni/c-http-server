@@ -1,8 +1,4 @@
-# Getting started
-
-Let's start with showcase of most of the features.
-
-Templates are the files with an extension `*.th` ("template header" files)
+Templates are the files with an extension `*.th` ("template header" files).
 
 **`index-template.th`**
 ```html
@@ -63,7 +59,8 @@ Templates are the files with an extension `*.th` ("template header" files)
 </html>
 ```
 
-gets translated into the plain C single header library
+They are getting translated into the plain C single header libraries, where
+every character outside `{{ ... }}` blocks is copied as is.
 
 **`index-template.h`**
 ```c
@@ -96,7 +93,20 @@ bool render_template(struct Context* ctx, struct StringBuilder* sb);
 bool
 render_template(struct Context* ctx, struct StringBuilder* sb)
 {
-    sb_appendf(sb, "%s", "example\n");
+    // Translation of `index-template.th` appears in here.
+    sb_appendf(sb,
+        "<!DOCTYPE html>\n"
+        "<html>\n"
+        "<head>\n"
+        "    <!-- String mode -->\n"
+        "\n"
+        "    <!-- .. starts with "$." -->\n"
+        "    <!-- .. #define $ (*ctx) -->\n"
+        "    <title>"
+    );
+    sb_appendf(sb, "%s", $.user.name);
+    sb_appendf(sb, "</title>\n");
+    // .. and so one until entire template file is translated
 }
 
 #undef sb_appendf
@@ -105,7 +115,7 @@ render_template(struct Context* ctx, struct StringBuilder* sb)
 #endif  // IMPLEMENTATION
 ```
 
-that later can be used as
+Translated headers can be used like this:
 
 **`main.c`**
 ```c
@@ -115,13 +125,13 @@ struct User {
     char const* name;
 };
 struct Context {
-    struct User* user;
+    struct User user;
 };
 
 #define IMPLEMENTATION
-#  define render_template render_footer_template
+#  define render_template render_footer_template  // index-template.h needs `render_footer_template`
 #    include "footer-template.h"
-#  undef render_template
+#  undef render_template                          // We aren't forced to redefine `render_template`
 #  include "index-template.h"
 #undef IMPLEMENTATION
 
@@ -131,45 +141,12 @@ IndexPage() {
         .name = "John Doe",
     };
     struct Context ctx = {
-        .user = &user,
+        .user = user,
     };
     struct StringBuilder sb = {0};
-    render_index_page(&ctx, &sb);
+    if (render_template(&ctx, &sb)) {
+        return sb.ascii;
+    }
+    return (struct String){0};
 }
 ```
-
-# Format statement modes
-
-Everything inside `{{` and `}}` is called format statement. There are following
-rules of how those statements are translated, rest appears in as a raw byte
-stream in the output.
-
-## Rule 1: The "Leading Quote" Rule (Format Mode)
-
-If the first non-whitespace character is a double quote ("), the block is
-interpreted as Format Mode.
-
-Example:
-Input: `{{ "%d", ctx->user->age }}`
-Output: `sb_appendf(sb, "%d", ctx->user->age);`
-
-## Rule 2: The "Simple Path" Rule (String Mode)
-
-If the content consists entirely of a single C-style "path" (alphanumerics,
-underscores, ->, or .) and contains no spaces, commas, or semicolons, it is
-interpreted as String Mode.
-
-Transformation: Wrap in `sb_appendf(sb, "%s", ctx->[content]);`
-Example:
-Input: `{{ user->name }}`
-Output: `sb_appendf(sb, "%s", ctx->user->name);`
-
-## Rule 3: The "Statement/Logic" Rule (Raw Mode)
-
-If the content does not meet Rule 1 or Rule 2, or if it contains specific C
-triggers, it is interpreted as Raw Mode.
-
-## Rule 4: line elimination
-
-If line contains single statement that ends with `-}}` this line should not
-output any whitespaces including newline surrounding it.
