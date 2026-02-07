@@ -18,9 +18,10 @@ print_escaped(const char* start, const char* end)
                         printf("\\\\");
                         break;
                 case '\n':
-                        printf("\\n\"\n        \"");
+                        printf("\\\n");
                         break;
                 case '\r':
+                        printf("\\\r");
                         break;
                 default:
                         putchar(*p);
