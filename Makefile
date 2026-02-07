@@ -18,21 +18,31 @@ ifeq (${BUILD_TYPE}, debug)
 	CFLAGS += -fsanitize=address -fsanitize=undefined
 endif
 
-# Directories
-SRC_DIR = src
-BIN_DIR = bin
-OBJ_DIR := $(BIN_DIR)/$(BUILD_TYPE)
+#
+# Application
+#
 
 # Function to convert source path to unique object file path
 define src_to_obj
 $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(1))
 endef
 
+# Directories
+SRC_DIR = src
+BIN_DIR = bin
+OBJ_DIR := $(BIN_DIR)/$(BUILD_TYPE)
+
+LIBRARY_SOURCES  = $(shell find $(SRC_DIR)/lib -name '*.c')
+$(info LIBRARY_SOURCES: $(LIBRARY_SOURCES))
+LIBRARY_OBJECTS  = $(foreach src,$(LIBRARY_SOURCES),$(call src_to_obj,$(src)))
+$(info LIBRARY_OBJECTS: $(LIBRARY_OBJECTS))
+# LIBRARY_OBJECTS := $(filter-out $(OBJ_DIR)/main.o, $(LIBRARY_OBJECTS))
+
 # Source files
-ALL_SRCS  = $(shell find $(SRC_DIR) -name '*.c')
+APPLICATION_SOURCES = $(shell find $(SRC_DIR)/app -name '*.c') $(LIBRARY_SOURCES) $(SRC_DIR)/main.c
 
 # Object files with unique names
-OBJECTS = $(foreach src,$(ALL_SRCS),$(call src_to_obj,$(src)))
+APPLICATION_OBJECTS = $(foreach src,$(APPLICATION_SOURCES),$(call src_to_obj,$(src)))
 
 # Run target
 .PHONY: run
@@ -40,8 +50,8 @@ run: ./$(BIN_DIR)/server
 	./$(BIN_DIR)/server
 
 # Compilation target
-$(BIN_DIR)/server: $(OBJECTS)
-	$(CC) $(CFLAGS) -o $(BIN_DIR)/server $^
+$(BIN_DIR)/server: $(APPLICATION_OBJECTS)
+	$(CC) $(CFLAGS) -o $@ $(APPLICATION_OBJECTS)
 
 # Generic rule to compile any source file to an object file
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
@@ -67,7 +77,7 @@ CXX_LIBS = $(shell pkg-config --libs gtest)
 TESTS_DIR = tests
 TESTS  = $(shell find $(TESTS_DIR) -name '*.hpp')
 
-TEST_OBJECTS := $(filter-out $(OBJ_DIR)/main.o, $(OBJECTS))
+TEST_OBJECTS := $(filter-out $(OBJ_DIR)/main.o, $(APPLICATION_OBJECTS))
 
 $(BIN_DIR)/gtest: $(TESTS) $(TEST_OBJECTS)
 	@mkdir -p $(dir $@)
@@ -77,9 +87,36 @@ $(BIN_DIR)/gtest: $(TESTS) $(TEST_OBJECTS)
 test: $(BIN_DIR)/gtest
 	$(BIN_DIR)/gtest
 
+#
+# Tools
+#
+
+# Build Template Header Compiler
+$(BIN_DIR)/thc: $(SRC_DIR)/tools/thc.c $(LIBRARY_OBJECTS)
+	@mkdir -p $(dir $@)
+	$(CC) $(INCLUDES) $(CFLAGS) -o $@ $^
+
+#
+# Compile template files
+#
+
+TEMPLATES_DIR = $(SRC_DIR)/app/templates
+TEMPLATES = $(shell find $(TEMPLATES_DIR) -name '*.html')
+
+$(TEMPLATES_DIR)/%.h: $(TEMPLATES_DIR)/%.html
+	$(BIN_DIR)/thc $^ > $@
+
+define template_to_header
+$(patsubst $(TEMPLATES_DIR)/%.html,$(TEMPLATES_DIR)/%.h,$(1))
+endef
+
+TEMPLATES_COMPILED = $(foreach src,$(TEMPLATES),$(call template_to_header,$(src)))
+
+compile_templates: $(TEMPLATES_COMPILED)
+
 # Clean target
 clean:
-	rm -rf $(BIN_DIR)
+	rm -rf $(BIN_DIR) $(TEMPLATES_COMPILED)
 
 # Debugging target to print variables
 print-%:

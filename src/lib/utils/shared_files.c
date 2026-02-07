@@ -10,6 +10,7 @@ close_file(void* file)
         fclose(*(FILE**)file);
 }
 
+[[nodiscard]]
 struct String
 read_entire_file(char const* filename)
 {
