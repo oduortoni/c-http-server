@@ -33,9 +33,7 @@ BIN_DIR = bin
 OBJ_DIR := $(BIN_DIR)/$(BUILD_TYPE)
 
 LIBRARY_SOURCES  = $(shell find $(SRC_DIR)/lib -name '*.c')
-$(info LIBRARY_SOURCES: $(LIBRARY_SOURCES))
 LIBRARY_OBJECTS  = $(foreach src,$(LIBRARY_SOURCES),$(call src_to_obj,$(src)))
-$(info LIBRARY_OBJECTS: $(LIBRARY_OBJECTS))
 # LIBRARY_OBJECTS := $(filter-out $(OBJ_DIR)/main.o, $(LIBRARY_OBJECTS))
 
 # Source files
@@ -81,7 +79,7 @@ TEST_OBJECTS := $(filter-out $(OBJ_DIR)/main.o, $(APPLICATION_OBJECTS))
 
 $(BIN_DIR)/gtest: $(TESTS) $(TEST_OBJECTS)
 	@mkdir -p $(dir $@)
-	$(CXX) $(INCLUDES) $(CXX_FLAGS) $(TEST_OBJECTS) $(TESTS_DIR)/gtest.cpp -o $@ $(CXX_LIBS)
+	$(CXX) $(INCLUDES) -I. $(CXX_FLAGS) $(TEST_OBJECTS) $(TESTS_DIR)/gtest.cpp -o $@ $(CXX_LIBS)
 
 .PHONY: test
 test: $(BIN_DIR)/gtest
