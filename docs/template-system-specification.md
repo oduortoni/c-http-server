@@ -48,11 +48,12 @@ Let's start with showcase of most of the features.
     <!-- Multiline statements -->
     {{ 
     if ($user->notes) {
-        sb_append(sb, "<p>Notes: ");
-        sb_append_fmt(sb, "%s", $user->notes);
-        sb_append(sb, "</p>");
+        sb_appendf(sb, "<p>Notes: %s</p>", $user->notes);
     }
     -}}
+
+    <!-- Include translated templates using function composition -->
+    {{ render_footer_template(ctx, sb); }}
 </body>
 </html>
 ```
