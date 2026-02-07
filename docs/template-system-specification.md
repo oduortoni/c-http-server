@@ -2,6 +2,8 @@
 
 Let's start with showcase of most of the features.
 
+Templates are the files with an extension `*.th` ("template header" files)
+
 **`filename.th`**
 ```html
 <!DOCTYPE html>
@@ -21,15 +23,13 @@ Let's start with showcase of most of the features.
     
     <!-- .. supports any valid C expressions -->
     <p>Birth Year: {{ "%d", $current_year - $user->age }}</p>
+    <p>Score: {{ "%.0f", calculate_score($user) * 100 }}</p>
     
     <!-- .. is fully compliant with C printf format -->
     <p>Balance: {{ "%.2f", $user->balance }}</p>
     <p>Discount: {{ "|%-10.1f\%|", $user->discount * 100 }}</p>
     <p>User ID: {{ "#%08X", $user->id }}</p>
     <p>Pointer: {{ "%p", $user }}</p>
-
-    <!-- .. supports complex expression -->
-    <p>Score: {{ "%.0f", calculate_score(ctx->user) * 100 }}</p>
     
     <!-- Raw mode: any valid C code inside the body of a function -->
     {{ if ($user->is_admin) { }}
