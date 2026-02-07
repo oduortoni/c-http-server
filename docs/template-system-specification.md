@@ -4,51 +4,56 @@ Let's start with showcase of most of the features.
 
 Templates are the files with an extension `*.th` ("template header" files)
 
-**`filename.th`**
+**`index-template.th`**
 ```html
 <!DOCTYPE html>
 <html>
 <head>
-    <!-- Example of explicit "context injection" -->
-    <title>{{ $user->name }}</title>
+    <!-- String mode -->
+
+    <!-- .. starts with "$." -->
+    <!-- .. #define $ (*ctx) -->
+    <title>{{ $.user.name }}</title>
 </head>
 <body>
     <h1>User Profile</h1>
     
-    <!-- String mode -->
-    <p>Name: {{ ctx->user->name }}</p>
+    <!-- .. is a shortcut for `sb_appendf(sb, "%s", __VA_ARGS__);`  -->
+    <p>Name: {{ sb_appendf(sb, "%s", $.user.name); }}</p>
 
     <!-- Format mode -->
-    <p>Age: {{ "%d", ctx->user->age }}</p>
+
+    <!-- .. starts with '"' -->
+    <p>Age: {{ "%d", $.user.age }}</p>
     
-    <!-- .. supports any valid C expressions -->
-    <p>Birth Year: {{ "%d", $current_year - $user->age }}</p>
-    <p>Score: {{ "%.0f", calculate_score($user) * 100 }}</p>
-    
-    <!-- .. is fully compliant with C printf format -->
-    <p>Balance: {{ "%.2f", $user->balance }}</p>
-    <p>Discount: {{ "|%-10.1f\%|", $user->discount * 100 }}</p>
-    <p>User ID: {{ "#%08X", $user->id }}</p>
-    <p>Pointer: {{ "%p", $user }}</p>
+    <!-- .. is a shortcut for: `sb_appendf(sb, __VA_ARGS__);` -->
+    <p>Birth Year: {{ sb_appendf(sb, "%d", $.current_year - $.user.age); }}</p>
+
+    <p>Score: {{ "%.0f", calculate_score($.user) * 100 }}</p>
+    <p>Balance: {{ "%.2f", $.user.balance }}</p>
+    <p>Discount: {{ "|%-10.1f\%|", $.user.discount * 100 }}</p>
+    <p>User ID: {{ "#%08X", $.user.id }}</p>
+    <p>Pointer: {{ "%p", $.user }}</p>
     
     <!-- Raw mode: any valid C code inside the body of a function -->
-    {{ if ($user->is_admin) { }}
+    <!-- .. translated as is, without modifications -->
+    {{ if ($.user.is_admin) { }}
         <p class="admin">Administrator</p>
     {{ } }}
     
     <!-- Line elimination -->
-    <!-- .. gets rid of surrounding whitespace and following newline -->
+    <!-- .. ends with "-}}" as opposed to "}}" -->
+    <!-- .. gets rid of surrounding whitespaces and following newline -->
     <ul>
-    {{ for (int i = 0; i < $user->friend_count; i++) { -}}
-        <li>{{ "%s", $user->friends[i] }}</li>
+    {{ for (int i = 0; i < $.user.friend_count; i++) { -}}
+        <li>{{ "%s", $.user.friends[i] }}</li>
     {{ } -}}
     </ul>
     
-    
-    <!-- Multiline statements -->
+    <!-- Multiline statements is a feature of the Raw mode -->
     {{ 
-    if ($user->notes) {
-        sb_appendf(sb, "<p>Notes: %s</p>", $user->notes);
+    if ($.user.notes) {
+        sb_appendf(sb, "<p>Notes: %s</p>", $.user.notes);
     }
     -}}
 
@@ -58,26 +63,45 @@ Templates are the files with an extension `*.th` ("template header" files)
 </html>
 ```
 
-gets translated into
+gets translated into the plain C single header library
 
-**`filename.h`**
+**`index-template.h`**
 ```c
-struct String;
-struct Context;
-struct StringBuilder;
+#ifndef INDEX_TEMPLATE_H
+#define INDEX_TEMPLATE_H
 
-#define $ ctx->
+// A consistent render function identifier allows us to define a macro that
+// redefines this name to the value that suits current needs the most.
+bool render_template(struct Context* ctx, struct StringBuilder* sb);
 
-struct String
-render_template(struct Context* ctx, struct StringBuilder* sb);
+#enif  // INDEX_TEMPLATE_H
 
 #ifdef IMPLEMENTATION
-struct String
+
+// Enables explicit context injection
+#define $ (*ctx)
+
+// Implicitly checks for en error during each IO operations
+#define sb_appendf(...)                                                 \
+    do {                                                                \
+        /* Macros do not allow recursive calls. */                      \
+        /* That is why an actual function is about to get called. */    \
+        bool result = sb_appendf(__VA_ARGS__);                          \
+        /* Interrupts template rendering as soon as an error occurs. */ \
+        if (!result) return false;                                      \
+    } while(0)
+
+// User supposed to provide appropriate `struct Context` and
+// `struct StringBuilder` definitions.
+bool
 render_template(struct Context* ctx, struct StringBuilder* sb)
 {
     sb_appendf(sb, "%s", "example\n");
-    return sb->ascii;
 }
+
+#undef sb_appendf
+#undef $
+
 #endif  // IMPLEMENTATION
 ```
 
@@ -95,8 +119,11 @@ struct Context {
 };
 
 #define IMPLEMENTATION
-#define render_template render_index_page
-#include "filename.h"
+#  define render_template render_footer_template
+#    include "footer-template.h"
+#  undef render_template
+#  include "index-template.h"
+#undef IMPLEMENTATION
 
 struct String
 IndexPage() {
@@ -107,7 +134,7 @@ IndexPage() {
         .user = &user,
     };
     struct StringBuilder sb = {0};
-    return render_index_page(&ctx, &sb);
+    render_index_page(&ctx, &sb);
 }
 ```
 
