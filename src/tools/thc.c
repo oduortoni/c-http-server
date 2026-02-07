@@ -32,6 +32,7 @@ print_escaped(char const* start, char const* end, struct StringBuilder* sb)
                                 output("%s", "\\n");
                         }
                         if (p >= end || *p == '\0') break;
+                        --p;
 
                         // split multi-line string
                         constexpr int quotes_index = sizeof("sb_appendf(sb,");
