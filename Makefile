@@ -86,23 +86,16 @@ test: $(BIN_DIR)/gtest
 	$(BIN_DIR)/gtest
 
 #
-# Tools
-#
-
-# Build Template Header Compiler
-$(BIN_DIR)/thc: $(SRC_DIR)/tools/thc.c $(LIBRARY_OBJECTS)
-	@mkdir -p $(dir $@)
-	$(CC) $(INCLUDES) $(CFLAGS) -o $@ $^
-
-#
 # Compile template files
 #
+
+ZC_TOOL_PATH ?= zc
 
 TEMPLATES_DIR = $(SRC_DIR)/app/templates
 TEMPLATES = $(shell find $(TEMPLATES_DIR) -name '*.html')
 
 $(TEMPLATES_DIR)/%.h: $(TEMPLATES_DIR)/%.html
-	$(BIN_DIR)/thc $^ > $@
+	$(ZC_TOOL_PATH) $^ > $@
 
 define template_to_header
 $(patsubst $(TEMPLATES_DIR)/%.html,$(TEMPLATES_DIR)/%.h,$(1))

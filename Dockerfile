@@ -35,6 +35,11 @@ RUN pip3 install --break-system-packages pre-commit
 RUN apt-get update && apt-get install -y pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
+# Build and install `zc` tool
+RUN git clone --depth=1 https://github.com/koutoftimer/zc.git /tmp/zc
+RUN make --directory=/tmp/zc --jobs=$(nproc)
+RUN make --directory=/tmp/zc install
+
 # Set workspace for GitHub Actions
 WORKDIR /github/workspace
 
