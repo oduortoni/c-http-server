@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "./app/index.hpp"
 #include "./lib/utils/string-builder/tests.hpp"
 
 int

@@ -54,5 +54,5 @@ get_form_value(const FormData* form_data, const char* name)
                         return form_data->fields[i].value;
                 }
         }
-        return "";
+        return nullptr;
 }

@@ -4,7 +4,7 @@ extern "C" {
 #include "utils/string-builder/header.h"
 }
 
-TEST(string_builder, mixed_ends_with_binary)
+TEST(lib_utils_string_builder, mixed_ends_with_binary)
 {
         struct StringBuilder sb = {};
         std::string_view s      = "Hello";

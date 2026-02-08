@@ -25,6 +25,14 @@
     </form>
     <div id='response'></div>
     <script src='/static/index.js'></script>
+    {{ if ($.is_method_post) { -}}
+    <div class='response success'>
+        <h3>Thank you for your submission!</h3>
+        <p><strong>Name:</strong> {{ $.name }}</p>
+        <p><strong>Email:</strong> {{ $.email }}</p>
+        <p><strong>Message:</strong> {{ $.message }}</p>
+    </div>
+    {{ } -}}
 </body>
 
 </html>

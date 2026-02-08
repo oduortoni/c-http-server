@@ -5,6 +5,10 @@ on:
   push:
     branch: main
 
+env:
+  BUILD_TYPE: debug
+  CC: gcc-14
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -17,9 +21,11 @@ jobs:
 
     - name: Build C code
       run: |
-        make bin/server CC=gcc-14 BUILD_TYPE=debug
+        make bin/thc
+        make compile_templates
+        make bin/server
 
     - name: Run tests
       run: |
-        make BUILD_TYPE=debug test    # unit tests
+        make test  # unit tests
         ./tests/integration-tests.sh
