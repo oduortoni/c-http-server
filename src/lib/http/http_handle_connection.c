@@ -4,12 +4,30 @@ int
 http_handle_connection(RequestContext* context, Client client)
 {
         Router* router = (Router*)context->router;
-        puts("http/handle_connection.c");
-        for (size_t i = 0;
-             i < ARRAY_LEN(router->patterns) && router->patterns[i]; i++) {
-                printf("HCRT: %s\n", router->patterns[i]);
+        char buffer[8192];
+
+        // Network layer: Read from socket
+        ssize_t bytes_read = read(client.socket, buffer, sizeof(buffer) - 1);
+        if (bytes_read < 0) {
+                perror("read() failed");
+                close(client.socket);
+                return -1;
         }
-        printf("PROCESSOR COMPONENTS: %s\n", router->patterns[1]);
-        http_handle(router, client);
-        return 0;
+        buffer[bytes_read]    = '\0';
+
+        // HTTP layer: Process request (pure function)
+        HttpResponse response = http_handle(router, buffer);
+
+        // Network layer: Write to socket
+        ssize_t bytes_written =
+            write(client.socket, response.data, response.length);
+        if (bytes_written < 0) {
+                perror("write() failed");
+        }
+
+        // Network layer: Cleanup
+        free(response.data);
+        close(client.socket);
+
+        return response.status;
 }

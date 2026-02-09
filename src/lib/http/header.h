@@ -116,12 +116,7 @@ typedef struct {
 
 RouterStatus handleFunc(const char* pattern, HandlerFunc handler);
 int listenAndServe(char* host, Router* router);
-
-// Old vs new handle func
-int http_handle(Router* router, Client client);
-HttpResponse http_handle_pure_func(Router* router, const char* request_data);
-
-// ----
+HttpResponse http_handle(Router* router, const char* request_data);
 int http_handle_connection(RequestContext* context, Client client);
 
 extern HttpServer http;
