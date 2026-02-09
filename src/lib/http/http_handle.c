@@ -82,3 +82,13 @@ http_handle(Router* router, Client client)
         close(client.socket);
         return 0;
 }
+
+HttpResponse
+http_handle_pure_func(Router* router, const char* request_data,
+                      size_t request_len)
+{
+        return (HttpResponse){
+            .data   = strdup("HTTP/1.1 501 Not Implemented\r\n\r\n"),
+            .length = 35,
+            .status = 0};
+}
