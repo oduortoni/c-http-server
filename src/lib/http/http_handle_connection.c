@@ -1,4 +1,5 @@
 #include "header.h"
+#include "utils/macros.h"
 
 int
 http_handle_connection(RequestContext* context, Client client)

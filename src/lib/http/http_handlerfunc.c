@@ -1,4 +1,5 @@
 #include "header.h"
+#include "utils/macros.h"
 
 RouterStatus
 handleFunc(const char* pattern, HandlerFunc handler)
