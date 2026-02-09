@@ -1,11 +1,10 @@
 #include "header.h"
-#include "utils/macros.h"
 
 // the request_len is necessary for protocols that do not use the null
 // terminator
 ProtocolResponse
 http_handle_connection(RequestContext* context, const char* request_data,
-                       size_t request_len)
+                       [[maybe_unused]] size_t request_len)
 {
         (void)request_len;
         Router* router        = (Router*)context->router;

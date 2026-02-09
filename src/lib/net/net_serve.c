@@ -47,6 +47,7 @@ net_serve(char* host, ProtocolHandler handle_protocol, RequestContext* context)
                        inet_ntoa(client_addr.sin_addr),
                        ntohs(client_addr.sin_port));
 
+                // TODO: avoid using a direct integer in favor of a variable
                 // network layer, read bytes from socket
                 char buffer[8192];
                 ssize_t bytes_read =
