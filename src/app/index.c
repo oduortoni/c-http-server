@@ -1,4 +1,5 @@
 #include "header.h"
+#include "utils/logging/header.h"
 #include "utils/string-builder/header.h"
 
 struct Context {
@@ -25,6 +26,9 @@ Index(ResponseWriter* w, Request* r)
                 ctx.message        = get_form_value(&form_data, "message");
                 ctx.is_method_post = true;
 
+                debug("name: %s\nemail: %s\nmessage: %s", ctx.name, ctx.email,
+                      ctx.message);
+
                 if (!ctx.name || !ctx.email || !ctx.message) {
                         SetStatus(w, 400, "Missing form fields");
                         return -1;
@@ -43,5 +47,5 @@ Index(ResponseWriter* w, Request* r)
         w->WriteString(w, sb.ascii.data);
         free(sb.ascii.data);
 
-        return 0;
+        return EXIT_SUCCESS;
 }

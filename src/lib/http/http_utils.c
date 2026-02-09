@@ -1,6 +1,7 @@
 #include <stddef.h>
 
-#include "utils/header.h"
+#include "utils/macros.h"
+#include "utils/string/header.h"
 
 char const*
 get_mime_type(char const* filename)

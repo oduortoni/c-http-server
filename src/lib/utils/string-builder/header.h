@@ -3,13 +3,10 @@
 
 #include <stddef.h>
 
+#include "utils/string/header.h"
+
 struct BinaryString {
         unsigned char* data;
-        size_t size;
-};
-
-struct String {
-        char* data;
         size_t size;
 };
 
