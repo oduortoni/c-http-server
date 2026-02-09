@@ -4,7 +4,7 @@
 static char const html_template[] =
 "<html><body style='height:100vh;display:flex;justify-content:center;align-items:center;'>"
 "<h1>404 Not Found</h1>"
-"<p>The requested path '%s' was not found on this server.</p>"
+"<p>The requested path '%.*s' was not found on this server.</p>"
 "</body></html>";
 // clang-format on
 
@@ -19,10 +19,11 @@ Error404(ResponseWriter* w, Request* r)
 
         // Construct response body
         char body[1024];
-        snprintf(body, sizeof(body) - 1, html_template, r->path);
+        snprintf(body, sizeof(body) - 1, html_template, (int)r->path.size,
+                 r->path.data);
 
         // Write response body
         w->WriteString(w, body);
 
-        return 0;
+        return EXIT_SUCCESS;
 }

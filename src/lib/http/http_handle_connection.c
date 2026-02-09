@@ -1,4 +1,5 @@
 #include "header.h"
+#include "utils/macros.h"
 
 // the request_len is necessary for protocols that do not use the null
 // terminator

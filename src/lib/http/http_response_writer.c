@@ -4,6 +4,8 @@
 #include <string.h>
 
 #include "header.h"
+#include "utils/arena/header.h"
+#include "utils/logging/header.h"
 
 int
 response_write(ResponseWriter* rw, const char* data, size_t size)
@@ -28,8 +30,22 @@ response_write_string(ResponseWriter* rw, const char* str)
 void
 InitResponseWriter(ResponseWriter* rw)
 {
+        static thread_local struct Arena arena = {0};
+
+        if (arena.buf == nullptr) {
+                constexpr size_t buf_len = 1024 * 1024;
+                char* buf                = malloc(buf_len);
+                if (!buf) {
+                        // TODO: handle allocation error
+                        error("Coun't allocate memory for arena's buffer");
+                        return;
+                }
+                arena_init(&arena, buf, buf_len);
+        }
+
         memset(rw, 0, sizeof *rw);
         strncpy(rw->version, "HTTP/1.1", MAX_VERSION_LEN);
+        rw->allocator   = &arena;
         rw->Write       = response_write;
         rw->WriteString = response_write_string;
 }
@@ -38,17 +54,29 @@ InitResponseWriter(ResponseWriter* rw)
 void
 SetHeader(ResponseWriter* rw, const char* name, const char* value)
 {
+        size_t const name_len  = strlen(name);
+        size_t const value_len = strlen(value);
         for (int i = 0; i < rw->header_count; ++i) {
-                if (strcmp(rw->headers[i].name, name) == 0) {
-                        Header* h = &rw->headers[i];
-                        strncpy(h->value, value, sizeof(h->value) - 1);
+                Header* h = &rw->headers[i];
+                if (name_len == h->name.size &&
+                    memcmp(h->name.data, name, h->name.size) == 0) {
+                        h->value.size = value_len;
+                        h->value.data =
+                            arena_alloc(rw->allocator, h->value.size);
+                        strncpy(h->value.data, value, h->value.size);
                         return;
                 }
         }
         if (rw->header_count < MAX_HEADERS) {
-                Header* h = &rw->headers[rw->header_count++];
-                strncpy(h->name, name, sizeof(h->name) - 1);
-                strncpy(h->value, value, sizeof(h->value) - 1);
+                Header* h    = &rw->headers[rw->header_count++];
+
+                h->name.size = strlen(name);
+                h->name.data = arena_alloc(rw->allocator, h->name.size);
+                strncpy(h->name.data, name, h->name.size);
+
+                h->value.size = strlen(value);
+                h->value.data = arena_alloc(rw->allocator, h->value.size);
+                strncpy(h->value.data, value, h->value.size);
         }
 }
 
@@ -78,9 +106,10 @@ BuildResponse(ResponseWriter* rw)
 
         // Headers
         for (int i = 0; i < rw->header_count; i++) {
-                written =
-                    snprintf(ptr, response + response_size - ptr, "%s: %s\r\n",
-                             rw->headers[i].name, rw->headers[i].value);
+                written = snprintf(ptr, response + response_size - ptr,
+                                   "%.*s: %.*s\r\n",
+                                   STRING_PRINT(rw->headers[i].name),
+                                   STRING_PRINT(rw->headers[i].value));
                 ptr += written;
         }
 

@@ -28,5 +28,5 @@ About(ResponseWriter* w, [[maybe_unused]] Request* r)
         // Write the About page to the response
         w->WriteString(w, html);
 
-        return 0;
+        return EXIT_SUCCESS;
 }

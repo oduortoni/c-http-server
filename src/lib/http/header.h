@@ -5,7 +5,8 @@
 #include <regex.h>
 
 #include "net/header.h"
-#include "utils/header.h"
+#include "utils/arena/header.h"
+#include "utils/string/header.h"
 
 #define MAX_HEADERS 20
 #define MAX_METHOD_LEN 8
@@ -18,40 +19,54 @@
 #define MAX_FORM_FIELDS 20
 #define MAX_FIELD_LENGTH 256
 
+typedef struct FormField FormField;
 struct FormField {
         char name[MAX_FIELD_LENGTH];
         char value[MAX_FIELD_LENGTH];
 };
-typedef struct FormField FormField;
+
+typedef struct FormData FormData;
 struct FormData {
         FormField fields[MAX_FORM_FIELDS];
         int count;
 };
-typedef struct FormData FormData;
 
-void url_decode(char* dest, const char* src);
-void parse_form_data(const char* body, FormData* form_data);
+void url_decode(char* dest, struct String const src);
+void parse_form_data(struct String body, FormData* form_data);
 const char* get_form_value(const FormData* form_data, const char* name);
 char const* get_mime_type(char const* filename);
 
-typedef struct Header {
-        char name[MAX_HEADER_LEN / 2];
-        char value[MAX_HEADER_LEN / 2];
-} Header;
+typedef struct Header Header;
+struct Header {
+        struct String name;
+        struct String value;
+};
 
-typedef struct Request {
+typedef struct Request Request;
+struct Request {
         char method[MAX_METHOD_LEN];
-        char path[MAX_PATH_LEN];
+        // HTTP doesn't specify maximum length
+        // `path` required to be null terminated, thus
+        // `path.data` holds pointer to cstr
+        struct String path;
         char version[MAX_VERSION_LEN];
-        Header headers[MAX_HEADERS];
-        int header_count;
-        char body[MAX_BODY_LEN];
-        size_t body_length;
+        // Dynamic array of headers.
+        struct RequestHeaders {
+                Header* items;
+                size_t len;
+                size_t capacity;
+        } headers;
+        struct String body;
         regex_t* path_regex;
         regmatch_t path_matches[20];
-} Request;
+};
 
-typedef struct ResponseWriter {
+// TODO: add constructor/destructor functions
+Request* parse_http_request(const char* req_bytes);
+void free_request(Request* req);
+
+typedef struct ResponseWriter ResponseWriter;
+struct ResponseWriter {
         int status_code;
         char status_text[MAX_STATUS_LEN];
         char version[MAX_VERSION_LEN];
@@ -59,11 +74,14 @@ typedef struct ResponseWriter {
         int header_count;
         char body[MAX_BODY_LEN];
         size_t body_length;
+        // allocator for dynamic data, like headers
+        struct Arena* allocator;
         int (*Write)(struct ResponseWriter* rw, const char* data, size_t size);
         int (*WriteString)(struct ResponseWriter* rw, const char* str);
-} ResponseWriter;
+};
 int response_write(ResponseWriter* rw, const char* data, size_t size);
 int response_write_string(ResponseWriter* rw, const char* str);
+// TODO: add destructor function
 void InitResponseWriter(ResponseWriter* rw);
 void SetHeader(ResponseWriter* rw, const char* name, const char* value);
 void SetStatus(ResponseWriter* rw, int code, const char* text);
@@ -79,9 +97,6 @@ enum ParseState {
         PARSE_COMPLETE,
         PARSE_ERROR
 };
-
-Request* parse_http_request(const char* req_bytes);
-void free_request(Request* req);
 
 typedef int (*HandlerFunc)(ResponseWriter* w, Request* r);
 

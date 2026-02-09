@@ -2,15 +2,15 @@
 #include <sys/stat.h>
 
 #include "header.h"
-#include "utils/header.h"
+#include "utils/string/header.h"
 
 int
 Static(ResponseWriter* w, Request* r)
 {
         // skip initial '/' to make path relative to the current working
         // directory
-        assert(strlen(r->path));
-        char const* filename = r->path + 1;
+        assert(r->path.size);
+        char const* filename = r->path.data + 1;
         printf("Requested static file: '%s'\n", filename);
 
         struct stat st;
@@ -26,5 +26,5 @@ Static(ResponseWriter* w, Request* r)
         w->Write(w, html.data, html.size);
         free(html.data);
 
-        return 0;
+        return EXIT_SUCCESS;
 }

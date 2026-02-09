@@ -1,48 +1,77 @@
 #include "header.h"
+#include "utils/logging/header.h"
 
 void
-url_decode(char* dest, const char* src)
+url_decode(char* dest, struct String const src)
 {
-        int j = 0;
-        for (int i = 0; src[i] && j < MAX_FIELD_LENGTH - 1; i++) {
-                if (src[i] == '+') {
+        size_t j = 0;
+        for (size_t i = 0; i < src.size && j < MAX_FIELD_LENGTH - 1; i++) {
+                if (src.data[i] == '+') {
                         dest[j++] = ' ';
-                } else if (src[i] == '%' && isxdigit(src[i + 1]) &&
-                           isxdigit(src[i + 2])) {
-                        char hex[3] = {src[i + 1], src[i + 2], '\0'};
-                        dest[j++]   = (char)strtol(hex, NULL, 16);
+                }
+
+                else if (i + 2 < src.size && src.data[i] == '%' &&
+                         isxdigit(src.data[i + 1]) &&
+                         isxdigit(src.data[i + 2])) {
+                        char hex[3] = {src.data[i + 1], src.data[i + 2], '\0'};
+                        dest[j++]   = strtol(hex, NULL, 16);
                         i += 2;
+
                 } else {
-                        dest[j++] = src[i];
+                        dest[j++] = src.data[i];
                 }
         }
         dest[j] = '\0';
 }
 
 void
-parse_form_data(const char* body, FormData* form_data)
+form_data_append(FormData* form_data, struct String name, struct String value)
 {
+        if (form_data->count + 1 >= MAX_FORM_FIELDS) {
+                // TODO: handle this case properly
+                error("reached max field count");
+                return;
+        }
+
+        auto field = &form_data->fields[form_data->count];
+
+        size_t len = name.size;
+        if (len > MAX_FIELD_LENGTH - 2) len = MAX_FIELD_LENGTH - 2;
+        strncpy(field->name, name.data, len);
+        field->name[MAX_FIELD_LENGTH - 1] = '\0';
+
+        url_decode(field->value, value);
+
+        form_data->count++;
+}
+
+void
+parse_form_data(struct String body, FormData* form_data)
+{
+        debug("Form data: %.*s", STRING_PRINT(body));
         form_data->count = 0;
-        char* saveptr;
-        char* token = strtok_r((char*)body, "&", &saveptr);
+        auto amp         = body;
+        while (amp.size) {
+                auto eq   = sv_trim_prefix_until(amp, '=');
+                auto name = (struct String){
+                    .data = amp.data,
+                    .size = eq.data - amp.data,
+                };
 
-        while (token != NULL && form_data->count < MAX_FORM_FIELDS) {
-                char* eq = strchr(token, '=');
-                if (eq) {
-                        *eq         = '\0';
-                        char* key   = token;
-                        char* value = eq + 1;
+                if (eq.size) eq.data++, eq.size--;
 
-                        url_decode(form_data->fields[form_data->count].value,
-                                   value);
-                        strncpy(form_data->fields[form_data->count].name, key,
-                                MAX_FIELD_LENGTH - 1);
-                        form_data->fields[form_data->count]
-                            .name[MAX_FIELD_LENGTH - 1] = '\0';
+                amp        = sv_trim_prefix_until(eq, '&');
+                auto value = (struct String){
+                    .data = eq.data,
+                    .size = amp.data - eq.data,
+                };
 
-                        form_data->count++;
-                }
-                token = strtok_r(NULL, "&", &saveptr);
+                if (amp.size) amp.data++, amp.size--;
+
+                debug("Form name: '%.*s', value: '%.*s'", STRING_PRINT(name),
+                      STRING_PRINT(value));
+
+                form_data_append(form_data, name, value);
         }
 }
 
