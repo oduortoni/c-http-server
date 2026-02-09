@@ -1,15 +1,17 @@
 #include "header.h"
 
+// the request_len is necessary for protocols that do not use the null
+// terminator
 ProtocolResponse
 http_handle_connection(RequestContext* context, const char* request_data,
                        size_t request_len)
 {
+        (void)request_len;
         Router* router        = (Router*)context->router;
 
-        // HTTP layer: Process request (pure function)
         HttpResponse response = http_handle(router, request_data);
 
-        // Convert HttpResponse to ProtocolResponse
+        // convert HttpResponse to ProtocolResponse
         return (ProtocolResponse){.data   = response.data,
                                   .length = response.length,
                                   .status = response.status};
