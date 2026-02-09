@@ -93,7 +93,7 @@ char*
 BuildResponse(ResponseWriter* rw)
 {
         char* response =
-            malloc(4096);  // we can avoid using the constant 4096 later
+            malloc(4096);  // TODO: we can avoid using the constant 4096 later
         if (!response) return nullptr;
 
         constexpr size_t response_size = 4096 - 1;
