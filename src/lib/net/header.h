@@ -19,10 +19,23 @@ struct RequestContext {
 typedef struct RequestContext RequestContext;
 
 /*
- * A protocol specific handler.
- * A function that knows how to handle the specific protocol e.g http, etc.
+ * Protocol response structure
  */
-typedef int (*ProtocolHandler)(RequestContext* context, Client client);
+struct ProtocolResponse {
+        char* data;
+        size_t length;
+        int status;
+};
+typedef struct ProtocolResponse ProtocolResponse;
+
+/*
+ * A protocol specific handler.
+ * Takes request bytes, returns response bytes.
+ * Protocol-agnostic: works with any protocol (HTTP, FTP, etc.)
+ */
+typedef ProtocolResponse (*ProtocolHandler)(RequestContext* context,
+                                            const char* request_data,
+                                            size_t request_len);
 
 int net_serve(char* host, ProtocolHandler handler, RequestContext* context);
 int net_listener(char* host, int port);

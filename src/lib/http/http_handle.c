@@ -2,43 +2,26 @@
 #include "utils/logging/header.h"
 #include "utils/macros.h"
 
-int
-http_handle(Router* router, Client client)
+HttpResponse
+http_handle(Router* router, const char* request_data)
 {
-        // TODO: replace with string builder
-        char buffer[8192];
+        info("Processing HTTP request");
 
-        info("Handling client connection");
-
-        ssize_t bytes_read = read(client.socket, buffer, sizeof(buffer) - 1);
-
-        info("Request received");
-
-        if (bytes_read < 0) {
-                error("read() failed");
-                perror("read() failed");  // TODO: format errno
-                close(client.socket);
-                return -1;
-        }
-        buffer[bytes_read] = '\0';
-
-        Request* req       = parse_http_request(buffer);
+        Request* req = parse_http_request(request_data);
         if (!req) {
                 error("Failed to parse HTTP request");
-                perror("Failed to parse HTTP request");  // TODO: format errno
-                close(client.socket);
-                return -1;
+                return (HttpResponse){
+                    .data   = strdup("HTTP/1.1 400 Bad Request\r\n\r\n"),
+                    .length = 28,
+                    .status = -1};
         }
-
-        info("Request parsed");
-
-        // Prepare ResponseWriter
-        ResponseWriter rw;
-        InitResponseWriter(&rw);
 
         info("Looking for handler for '%.*s'", STRING_PRINT(req->path));
 
-        // Find and call the handler for the request path
+        ResponseWriter rw;
+        InitResponseWriter(&rw);
+
+        // Find and call handler
         HandlerFunc handler = nullptr;
         for (size_t i = 0;
              i < ARRAY_LEN(router->patterns) && router->patterns[i]; i++) {
@@ -46,45 +29,43 @@ http_handle(Router* router, Client client)
                 if (!regexec(req->path_regex, req->path.data,
                              ARRAY_LEN(req->path_matches), req->path_matches,
                              0)) {
-                        info("Using '%s' hander", router->patterns[i]);
+                        info("Using '%s' handler", router->patterns[i]);
                         handler = router->handlers[i];
-                        break;     // Stop searching once a matching handler is
-                                   // found
+                        break;
                 }
         }
-        if (handler == nullptr) {  // no path matched, invoke /404
+
+        // If no handler found, try 404
+        if (handler == nullptr) {
                 req->path_regex = nullptr;
                 for (size_t i = 0;
                      i < ARRAY_LEN(router->patterns) && router->patterns[i];
                      i++) {
                         if (strcmp("^/404$", router->patterns[i]) == 0) {
-                                info("Using '%s' hander", router->patterns[i]);
+                                info("Using '%s' handler", router->patterns[i]);
                                 handler = router->handlers[i];
-                                break;  // Stop searching once the 404 handler
-                                        // is found
+                                break;
                         }
                 }
         }
+
         if (handler) {
                 handler(&rw, req);
-
                 info("Handler processed");
-
-                // Build the HTTP response
-                // TODO: use string builder and return string view
-                char* response = BuildResponse(&rw);
-
-                // Send the response to the client
-                // TODO: `strlen` will not work for binary data, e.g. pdf files
-                ssize_t bytes_written =
-                    write(client.socket, response, strlen(response));
-                if (bytes_written < 0) {
-                        perror("write() failed");  // TODO: format errno
-                }
+        } else {
+                SetStatus(&rw, 404, "Not Found");
+                rw.WriteString(&rw, "404 - Page not found");
         }
 
-        arena_free_all(rw.allocator);
+        char* response      = BuildResponse(&rw);
+        size_t response_len = strlen(response);
+
+        // Clean up arena allocations
+        if (rw.allocator) {
+                arena_free_all(rw.allocator);
+        }
         free_request(req);
-        close(client.socket);
-        return 0;
+
+        return (HttpResponse){
+            .data = response, .length = response_len, .status = 0};
 }

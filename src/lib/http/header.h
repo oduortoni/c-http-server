@@ -123,10 +123,18 @@ struct HttpServer {
 };
 typedef struct HttpServer HttpServer;
 
+typedef struct {
+        char* data;
+        size_t length;
+        int status;
+} HttpResponse;
+
 RouterStatus handleFunc(const char* pattern, HandlerFunc handler);
 int listenAndServe(char* host, Router* router);
-int http_handle(Router* router, Client client);
-int http_handle_connection(RequestContext* context, Client client);
+HttpResponse http_handle(Router* router, const char* request_data);
+ProtocolResponse http_handle_connection(RequestContext* context,
+                                        const char* request_data,
+                                        size_t request_len);
 
 extern HttpServer http;
 

@@ -92,8 +92,11 @@ SetStatus(ResponseWriter* rw, int code, const char* text)
 char*
 BuildResponse(ResponseWriter* rw)
 {
-        static char response[4096];  // should be dynamically allocated
-        constexpr size_t response_size = sizeof(response) - 1;
+        char* response =
+            malloc(4096);  // we can avoid using the constant 4096 later
+        if (!response) return nullptr;
+
+        constexpr size_t response_size = 4096 - 1;
         char* ptr                      = response;
 
         // Status line

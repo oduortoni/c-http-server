@@ -1,16 +1,18 @@
 #include "header.h"
-#include "utils/macros.h"
 
-int
-http_handle_connection(RequestContext* context, Client client)
+// the request_len is necessary for protocols that do not use the null
+// terminator
+ProtocolResponse
+http_handle_connection(RequestContext* context, const char* request_data,
+                       [[maybe_unused]] size_t request_len)
 {
-        Router* router = (Router*)context->router;
-        puts("http/handle_connection.c");
-        for (size_t i = 0;
-             i < ARRAY_LEN(router->patterns) && router->patterns[i]; i++) {
-                printf("HCRT: %s\n", router->patterns[i]);
-        }
-        printf("PROCESSOR COMPONENTS: %s\n", router->patterns[1]);
-        http_handle(router, client);
-        return 0;
+        (void)request_len;
+        Router* router        = (Router*)context->router;
+
+        HttpResponse response = http_handle(router, request_data);
+
+        // convert HttpResponse to ProtocolResponse
+        return (ProtocolResponse){.data   = response.data,
+                                  .length = response.length,
+                                  .status = response.status};
 }
