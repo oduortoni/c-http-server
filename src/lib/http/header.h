@@ -117,7 +117,9 @@ typedef struct {
 RouterStatus handleFunc(const char* pattern, HandlerFunc handler);
 int listenAndServe(char* host, Router* router);
 HttpResponse http_handle(Router* router, const char* request_data);
-int http_handle_connection(RequestContext* context, Client client);
+ProtocolResponse http_handle_connection(RequestContext* context,
+                                        const char* request_data,
+                                        size_t request_len);
 
 extern HttpServer http;
 
