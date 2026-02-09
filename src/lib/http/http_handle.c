@@ -1,5 +1,7 @@
 #include "header.h"
 
+// calls the pure function
+// still knows about sockets - Next refactor is to move that to the net folder
 int
 http_handle(Router* router, Client client)
 {
@@ -16,24 +18,41 @@ http_handle(Router* router, Client client)
                 close(client.socket);
                 return -1;
         }
-        buffer[bytes_read] = '\0';
+        buffer[bytes_read]    = '\0';
 
-        Request* req       = parse_http_request(buffer);
-        if (!req) {
-                perror("Failed to parse HTTP request");
-                close(client.socket);
-                return -1;
+        // call pure function
+        HttpResponse response = http_handle_pure_func(router, buffer);
+
+        puts("Handler processed");
+
+        // Send the response to the client
+        ssize_t bytes_written =
+            write(client.socket, response.data, response.length);
+        if (bytes_written < 0) {
+                perror("write() failed");
         }
 
-        puts("Request parsed");
+        // Cleanup
+        free(response.data);
+        close(client.socket);
+        return response.status;
+}
 
-        // Prepare ResponseWriter
+HttpResponse
+http_handle_pure_func(Router* router, const char* request_data)
+{
+        Request* req = parse_http_request(request_data);
+        if (!req) {
+                return (HttpResponse){
+                    .data   = strdup("HTTP/1.1 400 Bad Request\r\n\r\n"),
+                    .length = 28,
+                    .status = -1};
+        }
+
         ResponseWriter rw;
         InitResponseWriter(&rw);
 
-        printf("Looking for handler for '%s'\n", req->path);
-
-        // Find and call the handler for the request path
+        // find and call handler
         HandlerFunc handler = nullptr;
         for (size_t i = 0;
              i < ARRAY_LEN(router->patterns) && router->patterns[i]; i++) {
@@ -41,54 +60,36 @@ http_handle(Router* router, Client client)
                 if (regexec(req->path_regex, req->path,
                             ARRAY_LEN(req->path_matches), req->path_matches,
                             0) == 0) {
-                        printf("Using '%s' hander\n", router->patterns[i]);
                         handler = router->handlers[i];
-                        break;     // Stop searching once a matching handler is
-                                   // found
+                        break;
                 }
         }
-        if (handler == nullptr) {  // no path matched, invoke /404
+
+        // if no handler found, try go to 404
+        if (handler == nullptr) {
                 req->path_regex = nullptr;
                 for (size_t i = 0;
                      i < ARRAY_LEN(router->patterns) && router->patterns[i];
                      i++) {
                         if (strcmp("^/404$", router->patterns[i]) == 0) {
-                                printf("Using '%s' hander\n",
-                                       router->patterns[i]);
                                 handler = router->handlers[i];
-                                break;  // Stop searching once the 404 handler
-                                        // is found
+                                break;
                         }
                 }
         }
+
         if (handler) {
                 handler(&rw, req);
-
-                puts("Handler processed");
-
-                // Build the HTTP response
-                char* response = BuildResponse(&rw);
-
-                // Send the response to the client
-                // TODO: `strlen` will not work for binary data, e.g. pdf files
-                ssize_t bytes_written =
-                    write(client.socket, response, strlen(response));
-                if (bytes_written < 0) {
-                        perror("write() failed");
-                }
+        } else {
+                SetStatus(&rw, 404, "Not Found");
+                rw.WriteString(&rw, "404 - Page not found");
         }
 
-        free_request(req);
-        close(client.socket);
-        return 0;
-}
+        char* response      = BuildResponse(&rw);
+        size_t response_len = strlen(response);
 
-HttpResponse
-http_handle_pure_func(Router* router, const char* request_data,
-                      size_t request_len)
-{
+        free_request(req);
+
         return (HttpResponse){
-            .data   = strdup("HTTP/1.1 501 Not Implemented\r\n\r\n"),
-            .length = 35,
-            .status = 0};
+            .data = response, .length = response_len, .status = 0};
 }
