@@ -87,7 +87,7 @@ void SetHeader(ResponseWriter* rw, const char* name, const char* value);
 void SetStatus(ResponseWriter* rw, int code, const char* text);
 char* BuildResponse(ResponseWriter* rw);
 
-enum ParseState {
+enum ParseStep {
         PARSE_METHOD,
         PARSE_PATH,
         PARSE_VERSION,

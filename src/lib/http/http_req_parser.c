@@ -10,16 +10,15 @@ static thread_local struct Arena* arena = nullptr;
 static thread_local struct String body  = {0};
 
 char const* parse_http_method(Request* req, char const* p,
-                              enum ParseState* state);
-char const* parse_http_path(Request* req, char const* p,
-                            enum ParseState* state);
+                              enum ParseStep* state);
+char const* parse_http_path(Request* req, char const* p, enum ParseStep* state);
 char const* parse_http_version(Request* req, char const* p,
-                               enum ParseState* state);
+                               enum ParseStep* state);
 char const* parse_http_header_name(Request* req, char const* p,
-                                   enum ParseState* state, int* content_length);
+                                   enum ParseStep* state, int* content_length);
 char const* parse_http_header_value(Request* req, char const* p,
-                                    enum ParseState* state);
-char const* parse_http_body(Request* req, char const* p, enum ParseState* state,
+                                    enum ParseStep* state);
+char const* parse_http_body(Request* req, char const* p, enum ParseStep* state,
                             int* content_length);
 
 Request*
@@ -52,9 +51,9 @@ parse_http_request(const char* raw_request)
                 return nullptr;
         }
 
-        enum ParseState state = PARSE_METHOD;
-        const char* p         = raw_request;
-        int content_length    = 0;
+        enum ParseStep state = PARSE_METHOD;
+        const char* p        = raw_request;
+        int content_length   = 0;
 
         while (p && *p && state != PARSE_COMPLETE && state != PARSE_ERROR) {
                 switch (state) {
@@ -98,7 +97,7 @@ free_request([[maybe_unused]] Request* req)
 }
 
 char const*
-parse_http_method(Request* req, char const* p, enum ParseState* state)
+parse_http_method(Request* req, char const* p, enum ParseStep* state)
 {
         char* method_ptr = req->method;
         while (*p && !isspace(*p)) {
@@ -117,7 +116,7 @@ parse_http_method(Request* req, char const* p, enum ParseState* state)
 }
 
 char const*
-parse_http_path(Request* req, char const* p, enum ParseState* state)
+parse_http_path(Request* req, char const* p, enum ParseStep* state)
 {
         req->path = (typeof(req->path)){0};
 
@@ -159,7 +158,7 @@ parse_http_path(Request* req, char const* p, enum ParseState* state)
 }
 
 char const*
-parse_http_version(Request* req, char const* p, enum ParseState* state)
+parse_http_version(Request* req, char const* p, enum ParseStep* state)
 {
         char* version_ptr = req->version;
         while (*p && *p != '\r' && *p != '\n') {
@@ -181,7 +180,7 @@ parse_http_version(Request* req, char const* p, enum ParseState* state)
 }
 
 char const*
-parse_http_header_name(Request* req, char const* p, enum ParseState* state,
+parse_http_header_name(Request* req, char const* p, enum ParseStep* state,
                        int* content_length)
 {
         // end of header section reached
@@ -256,7 +255,7 @@ parse_http_header_name(Request* req, char const* p, enum ParseState* state,
         return p;
 }
 char const*
-parse_http_header_value(Request* req, char const* p, enum ParseState* state)
+parse_http_header_value(Request* req, char const* p, enum ParseStep* state)
 {
         // current_header->value has been zero initialized by
         // `da_append` macro
@@ -291,7 +290,7 @@ parse_http_header_value(Request* req, char const* p, enum ParseState* state)
 }
 
 char const*
-parse_http_body(Request* req, char const* p, enum ParseState* state,
+parse_http_body(Request* req, char const* p, enum ParseStep* state,
                 int* content_length)
 {
         size_t bytes_remaining = strlen(p);
