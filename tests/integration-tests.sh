@@ -2,11 +2,14 @@
 
 cleanup() {
     kill "$SERVER_PID"
+    wait $SERVER_PID
+    EXIT_CODE=$?
+    [ $EXIT_CODE -ne 0 ] && [ $EXIT_CODE -ne 143 ] && die "server failed with exit code $EXIT_CODE"
 }
 trap cleanup EXIT
 
 die() {
-  echo "$1" >&2
+  printf "\033[31mERROR:\033[0m $1\n" >&2
   exit 1
 }
 
@@ -31,4 +34,11 @@ done
 if [ -z "$HURL" ]; then
   HURL="hurl"
 fi
-"$HURL" --test --variable PORT="$PORT" tests/integration-tests.hurl
+
+$HURL --test --variable PORT="$PORT" tests/integration-tests.hurl
+
+[ $? -ne 0 ] && die "hurl failed"
+
+# Check for closing connection
+printf '' > /dev/tcp/127.0.0.1/9000
+sleep 0.3
