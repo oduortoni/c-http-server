@@ -164,8 +164,6 @@ For working with dynamic memory:
 
 ```c
 Request* req = parse_http_request(buffer);
-// ...use req...
-free_request(req);  // Free the memory when done
 ```
 
 ## Example: Adding a New Route
@@ -236,4 +234,4 @@ http://localhost:8080/
    - Starts listening for connections
    - When a connection arrives, it accepts it and processes the request
    - It sends back a response
-   - Then it waits for the next connection 
+   - Then it waits for the next connection

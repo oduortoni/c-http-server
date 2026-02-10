@@ -65,9 +65,11 @@ struct Request {
         regmatch_t path_matches[20];
 };
 
-// TODO: add constructor/destructor functions
 Request* parse_http_request(const char* req_bytes);
-void free_request(Request* req);
+
+//
+// Request internals
+//
 
 enum ParseStep {
         PARSE_METHOD,
@@ -85,6 +87,8 @@ struct ParseState {
         enum ParseStep step;
         const char* p;
         int content_length;
+        struct String* body;
+        struct Arena* allocator;
 };
 
 void parse_http_method(struct ParseState* state);

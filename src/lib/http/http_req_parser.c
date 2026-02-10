@@ -6,12 +6,12 @@
 #include "utils/logging/header.h"
 #include "utils/macros.h"
 
-static thread_local struct Arena* arena = nullptr;
-static thread_local struct String body  = {0};
-
 Request*
 parse_http_request(const char* raw_request)
 {
+        static thread_local struct Arena* arena = nullptr;
+        static thread_local struct String body  = {0};
+
         if (!arena) {
                 // 1Mb for headers should be enough for most cases
                 // .. if body doesn't fit we can always just alloc more memory
@@ -32,6 +32,10 @@ parse_http_request(const char* raw_request)
         }
         assert(arena && "Arena MUST be initialized");
         assert(arena->buf && "Arena's buffer MUST be initialized");
+
+        // reset arena during initialization to forget about memory management
+        arena_free_all(arena);
+
         Request* req = arena_alloc(arena, sizeof *req);
         if (!req) {
                 // TODO: 500 Internal Server Error
@@ -44,6 +48,8 @@ parse_http_request(const char* raw_request)
             .step           = PARSE_METHOD,
             .p              = raw_request,
             .content_length = 0,
+            .body           = &body,
+            .allocator      = arena,
         };
 
         while (state.p && *state.p && state.step != PARSE_COMPLETE &&
@@ -74,17 +80,10 @@ parse_http_request(const char* raw_request)
         }
 
         if (state.step == PARSE_ERROR) {
-                free_request(req);
                 return NULL;
         }
 
         return req;
-}
-
-void
-free_request([[maybe_unused]] Request* req)
-{
-        arena_free_all(arena);
 }
 
 void
@@ -110,7 +109,8 @@ parse_http_path(struct ParseState* state)
         state->req->path = (typeof(state->req->path)){0};
 
         while (*state->p && !isspace(*state->p)) {
-                char* path_ptr = arena_alloc_array(arena, 1, path_ptr);
+                char* path_ptr =
+                    arena_alloc_array(state->allocator, 1, path_ptr);
                 if (state->req->path.data == nullptr) {
                         state->req->path.data = path_ptr;
                 }
@@ -131,7 +131,7 @@ parse_http_path(struct ParseState* state)
         // `regexec` requires null terminated string
         // .. add null terminator to saticfy cstr but do not
         //    change the size of the actual string
-        if (!arena_alloc_array(arena, 1, state->req->path.data)) {
+        if (!arena_alloc_array(state->allocator, 1, state->req->path.data)) {
                 // TODO: 414 status code
                 error("path too long");
                 state->step = PARSE_ERROR;
@@ -197,8 +197,9 @@ parse_http_header_name(struct ParseState* state)
         }
 
         // redirect allocation operations to the arena
-#define malloc(size) arena_alloc(arena, size)
-#define realloc(array, size) arena_resize(arena, array, size / 2, size)
+#define malloc(size) arena_alloc(state->allocator, size)
+#define realloc(array, size) \
+        arena_resize(state->allocator, array, size / 2, size)
         da_append(state->req->headers, (typeof(*state->req->headers.items)){0});
 #undef malloc
 #undef realloc
@@ -214,7 +215,8 @@ parse_http_header_name(struct ParseState* state)
             &state->req->headers.items[state->req->headers.len - 1];
 
         while (*state->p && *state->p != ':' && !isspace(*state->p)) {
-                char* current_name = arena_alloc_array(arena, 1, current_name);
+                char* current_name =
+                    arena_alloc_array(state->allocator, 1, current_name);
                 if (current_header->name.data == nullptr) {
                         current_header->name.data = current_name;
                 }
@@ -247,7 +249,7 @@ parse_http_header_value(struct ParseState* state)
 
         while (*state->p && *state->p != '\r' && *state->p != '\n') {
                 char* current_value =
-                    arena_alloc_array(arena, 1, current_value);
+                    arena_alloc_array(state->allocator, 1, current_value);
                 if (current_header->value.data == nullptr) {
                         current_header->value.data = current_value;
                 }
@@ -278,22 +280,29 @@ parse_http_body(struct ParseState* state)
                                    ? (size_t)state->content_length
                                    : bytes_remaining;
 
-        if (!body.size) {
-                body.data = malloc(bytes_to_copy);
-                body.size = bytes_to_copy;
+        // TODO: what if we've received 1GB file upload request? Will it
+        // preserve allocated memory or free it, when?
+        if (!state->body->size) {
+                state->body->data = malloc(bytes_to_copy);
+                state->body->size = bytes_to_copy;
         }
-        if (bytes_to_copy > body.size) {
-                body.size = bytes_to_copy;
-                body.data = realloc(body.data, body.size);
+        // TODO: what if we have allocated 10Mb of data and starting receiving
+        // requests 1kb, 2kb, ... up to 1Mb again? Will decrease of the `size`
+        // cause reallocation for each subsequent request or `realloc` can
+        // handle this case?
+        if (bytes_to_copy > state->body->size) {
+                state->body->size = bytes_to_copy;
+                state->body->data =
+                    realloc(state->body->data, state->body->size);
         }
-        if (!body.data) {
+        if (!state->body->data) {
                 // TODO: 500 Internal Server Error
                 error("can't allocate memory for body");
                 state->step = PARSE_ERROR;
         }
 
         state->req->body = (struct String){
-            .data = body.data,
+            .data = state->body->data,
             .size = bytes_to_copy,
         };
         memcpy(state->req->body.data, state->p, bytes_to_copy);
