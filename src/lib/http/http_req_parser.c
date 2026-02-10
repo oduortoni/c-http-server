@@ -35,13 +35,9 @@ parse_http_request(const char* raw_request)
         Request* req = arena_alloc(arena, sizeof *req);
         if (!req) return nullptr;
 
-        memset(req, 0, sizeof *req);
-
         enum ParseState state  = PARSE_METHOD;
         const char* p          = raw_request;
         Header* current_header = nullptr;
-        char* current_name     = nullptr;
-        char* current_value    = nullptr;
         int content_length     = 0;
 
         while (*p && state != PARSE_COMPLETE && state != PARSE_ERROR) {
@@ -64,16 +60,20 @@ parse_http_request(const char* raw_request)
                 }
 
                 case PARSE_PATH: {
-                        // allocate 1 byte in the arena
-                        req->path.data = arena_alloc(arena, 1);
-                        char* path_ptr = req->path.data;
-                        int max_len    = arena->buf_len - arena->prev_offset;
+                        req->path = (typeof(req->path)){0};
+
                         while (*p && !isspace(*p)) {
+                                char* path_ptr =
+                                    arena_alloc_array(arena, 1, path_ptr);
+                                if (req->path.data == nullptr) {
+                                        req->path.data = path_ptr;
+                                }
                                 // TODO: If a request exceeds a server's limit,
                                 // it typically returns an HTTP 414 URI Too Long
                                 // status code.
-                                if (path_ptr - req->path.data < max_len) {
-                                        *path_ptr++ = *p;
+                                if (path_ptr != nullptr) {
+                                        *path_ptr = *p;
+                                        req->path.size++;
                                 } else {
                                         error("path too long");
                                         state = PARSE_ERROR;
@@ -81,11 +81,17 @@ parse_http_request(const char* raw_request)
                                 }
                                 p++;
                         }
-                        req->path.size = path_ptr - req->path.data;
+
                         // `regexec` requires null terminated string
-                        req->path.data[req->path.size] = '\0';
-                        // claim rest of the required size as used
-                        arena->curr_offset += req->path.size;
+                        // .. add null terminator to saticfy cstr but do not
+                        //    change the size of the actual string
+                        if (!arena_alloc_array(arena, 1, req->path.data)) {
+                                // TODO: 414 status code
+                                error("path too long");
+                                state = PARSE_ERROR;
+                                break;
+                        }
+
                         if (*p) p++;  // skip space
                         state = PARSE_VERSION;
 
@@ -149,7 +155,8 @@ parse_http_request(const char* raw_request)
                         // redirect allocation operations to the arena
 #define malloc(size) arena_alloc(arena, size)
 #define realloc(array, size) arena_resize(arena, array, size / 2, size)
-                        da_append(req->headers, (struct Header){0});
+                        da_append(req->headers,
+                                  (typeof(*req->headers.items)){0});
 #undef malloc
 #undef realloc
 
@@ -164,23 +171,16 @@ parse_http_request(const char* raw_request)
                         current_header =
                             &req->headers.items[req->headers.len - 1];
 
-                        // allocate 1 byte to mark starting point of header name
-                        current_header->name.data = arena_alloc(arena, 1);
-                        size_t max_len = arena->buf_len - arena->prev_offset;
-                        if (!current_header->name.data) {
-                                // TODO: 500 Internal Server Error
-                                error(
-                                    "can't allocate current_header->name.data");
-                                state = PARSE_ERROR;
-                                break;
-                        }
-
-                        current_name = current_header->name.data;
                         while (*p && *p != ':' && !isspace(*p)) {
-                                if ((uintptr_t)current_name -
-                                        (uintptr_t)current_header->name.data <
-                                    max_len) {
-                                        *current_name++ = *p;
+                                char* current_name =
+                                    arena_alloc_array(arena, 1, current_name);
+                                if (current_header->name.data == nullptr) {
+                                        current_header->name.data =
+                                            current_name;
+                                }
+                                if (current_name) {
+                                        *current_name = *p;
+                                        current_header->name.size++;
                                 } else {
                                         // TODO: 500 Internal Server Error
                                         error("header name too long");
@@ -189,10 +189,6 @@ parse_http_request(const char* raw_request)
                                 }
                                 p++;
                         }
-                        current_header->name.size =
-                            current_name - current_header->name.data;
-                        // claim the rest of the required size as used
-                        arena->curr_offset += current_header->name.size;
 
                         // Skip colon and whitespace
                         while (*p && (*p == ':' || isspace(*p))) p++;
@@ -202,21 +198,19 @@ parse_http_request(const char* raw_request)
                 }
 
                 case PARSE_HEADER_VALUE: {
-                        current_header->value.data = arena_alloc(arena, 1);
-                        int max_len = arena->buf_len - arena->prev_offset;
-                        if (!current_header->value.data) {
-                                // TODO: 500 Internal Server Error
-                                error(
-                                    "can't allocate "
-                                    "current_header->value.data");
-                                state = PARSE_ERROR;
-                                break;
-                        }
-                        current_value = current_header->value.data;
+                        // current_header->value has been zero initialized by
+                        // `da_append` macro
+
                         while (*p && *p != '\r' && *p != '\n') {
-                                if (current_value - current_header->value.data <
-                                    max_len) {
-                                        *current_value++ = *p;
+                                char* current_value =
+                                    arena_alloc_array(arena, 1, current_value);
+                                if (current_header->value.data == nullptr) {
+                                        current_header->value.data =
+                                            current_value;
+                                }
+                                if (current_value != nullptr) {
+                                        *current_value = *p;
+                                        current_header->value.size++;
                                 } else {
                                         // TODO: 500 Internal Server Error
                                         error("header value is too long");
@@ -225,10 +219,6 @@ parse_http_request(const char* raw_request)
                                 }
                                 p++;
                         }
-                        current_header->value.size =
-                            current_value - current_header->value.data;
-                        // claim the rest of the required size as used
-                        arena->curr_offset += current_header->value.size;
 
                         // Skip CRLF
                         if (*p == '\r') p++;
