@@ -35,8 +35,6 @@ parse_http_request(const char* raw_request)
         Request* req = arena_alloc(arena, sizeof *req);
         if (!req) return nullptr;
 
-        memset(req, 0, sizeof *req);
-
         enum ParseState state  = PARSE_METHOD;
         const char* p          = raw_request;
         Header* current_header = nullptr;
