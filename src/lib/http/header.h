@@ -91,11 +91,15 @@ struct ParseState {
         struct Arena* allocator;
 };
 
+struct ParseState* parse_http_init_state(const char* raw_request);
+
 void parse_http_method(struct ParseState* state);
 void parse_http_path(struct ParseState* state);
 void parse_http_version(struct ParseState* state);
+
 void parse_http_header_name(struct ParseState* state);
 void parse_http_header_value(struct ParseState* state);
+
 void parse_http_body(struct ParseState* state);
 
 //

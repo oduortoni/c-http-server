@@ -6,8 +6,8 @@
 #include "utils/logging/header.h"
 #include "utils/macros.h"
 
-Request*
-parse_http_request(const char* raw_request)
+struct ParseState*
+parse_http_init_state(const char* raw_request)
 {
         static thread_local struct Arena* arena = nullptr;
         static thread_local struct String body  = {0};
@@ -38,52 +38,67 @@ parse_http_request(const char* raw_request)
 
         Request* req = arena_alloc(arena, sizeof *req);
         if (!req) {
-                // TODO: 500 Internal Server Error
-                error("failed to allocate memory for request");
+                error("failed to allocate memory for Request");
                 return nullptr;
         }
 
-        struct ParseState state = {
-            .req            = req,
-            .step           = PARSE_METHOD,
-            .p              = raw_request,
-            .content_length = 0,
-            .body           = &body,
-            .allocator      = arena,
-        };
+        struct ParseState* state = arena_alloc(arena, sizeof *state);
+        if (!state) {
+                error("failed to allocate memory for ParseState");
+                return nullptr;
+        }
+        state->req            = req;
+        state->step           = PARSE_METHOD;
+        state->p              = raw_request;
+        state->content_length = 0;
+        state->body           = &body;
+        state->allocator      = arena;
+        return state;
+}
 
-        while (state.p && *state.p && state.step != PARSE_COMPLETE &&
-               state.step != PARSE_ERROR) {
-                switch (state.step) {
+Request*
+parse_http_request(const char* raw_request)
+{
+        struct ParseState* state = parse_http_init_state(raw_request);
+        if (!state) {
+                // TODO: 500 Internal Server Error
+                return nullptr;
+        }
+
+        while (state->p && *state->p && state->step != PARSE_COMPLETE &&
+               state->step != PARSE_ERROR) {
+                switch (state->step) {
                 case PARSE_METHOD:
-                        parse_http_method(&state);
+                        parse_http_method(state);
                         break;
                 case PARSE_PATH:
-                        parse_http_path(&state);
+                        parse_http_path(state);
                         break;
                 case PARSE_VERSION:
-                        parse_http_version(&state);
+                        parse_http_version(state);
                         break;
                 case PARSE_HEADER_NAME:
-                        parse_http_header_name(&state);
+                        parse_http_header_name(state);
                         break;
                 case PARSE_HEADER_VALUE:
-                        parse_http_header_value(&state);
+                        parse_http_header_value(state);
                         break;
                 case PARSE_BODY:
-                        parse_http_body(&state);
+                        parse_http_body(state);
                         break;
                 default:
-                        state.step = PARSE_ERROR;
+                        state->step = PARSE_ERROR;
                         break;
                 }
         }
 
-        if (state.step == PARSE_ERROR) {
-                return NULL;
+        if (state->step == PARSE_ERROR) {
+                // TODO: 500 Internal Server Error or whatever sub-parsers
+                // return
+                return nullptr;
         }
 
-        return req;
+        return state->req;
 }
 
 void
