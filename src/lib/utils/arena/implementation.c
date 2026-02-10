@@ -55,7 +55,8 @@ align_forward(uintptr_t ptr, size_t align)
 }
 
 #ifndef DEFAULT_ALIGNMENT
-#define DEFAULT_ALIGNMENT (2 * sizeof(void*))
+// see: C23 6.2.8 https://www.iso-9899.info/n3220.html#6.2.8
+#define DEFAULT_ALIGNMENT alignof(max_align_t)
 #endif
 
 void
@@ -76,17 +77,17 @@ arena_alloc_align(Arena* a, size_t size, size_t align)
         offset -= (uintptr_t)a->buf;  // Change to relative offset
 
         // Check to see if the backing memory has space left
-        if (offset + size <= a->buf_len) {
-                void* ptr      = &a->buf[offset];
-                a->prev_offset = offset;
-                a->curr_offset = offset + size;
-
-                // Zero new memory by default
-                memset(ptr, 0, size);
-                return ptr;
+        if (offset + size > a->buf_len) {
+                return nullptr;
         }
-        // Return nullptr if the arena is out of memory (or handle differently)
-        return nullptr;
+
+        void* ptr      = &a->buf[offset];
+        a->prev_offset = offset;
+        a->curr_offset = offset + size;
+
+        // Zero new memory by default
+        memset(ptr, 0, size);
+        return ptr;
 }
 
 // Because C doesn't have default parameters

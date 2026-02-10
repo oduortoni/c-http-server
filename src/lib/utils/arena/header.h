@@ -13,8 +13,20 @@ struct Arena {
 
 void arena_init(Arena* a, void* backing_buffer, size_t backing_buffer_length);
 
+// Zero allocates returned memory.
 void* arena_alloc_align(Arena* a, size_t size, size_t align);
+
+// Zero allocates returned memory.
 void* arena_alloc(Arena* a, size_t size);
+
+// Allocates an array of size `n_elements` with type of provided `array` or
+// extends previous one when called subsequently with the array of the same size
+// of an element.
+//
+// Zero allocates returned memory.
+#define arena_alloc_array(arena, n_elements, array)               \
+        arena_alloc_align((arena), (n_elements) * sizeof(*array), \
+                          alignof(typeof(*array)))
 
 void* arena_resize_align(Arena* a, void* old_memory, size_t old_size,
                          size_t new_size, size_t align);
@@ -22,28 +34,5 @@ void* arena_resize(Arena* a, void* old_memory, size_t old_size,
                    size_t new_size);
 
 void arena_free_all(Arena* a);
-
-//
-// Extension to the original arena
-//
-
-// TODO: implement arena extension
-
-// It is common for processing stream that you don't know the size of incoming
-// data. This function invalidates any incomming `arena_alloc*` calls until
-// `arena_vla_end`.
-//
-// @returns Available space in the arena, in bytes
-size_t arena_vla_start(Arena* a);
-
-// Allocates next element of VLA
-//
-// @param `size`: size of underlying data
-void* arena_alloc_vla(Arena* a, size_t size);
-
-// Returns the length of VLA
-//
-// @param `size`: size of underlying data
-size_t arena_vla_end(Arena* a, size_t size);
 
 #endif  // INCLUDE_ARENA_HEADER_H_
