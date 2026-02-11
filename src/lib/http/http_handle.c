@@ -16,6 +16,14 @@ http_handle(Router* router, const char* request_data)
                     .status = -1};
         }
 
+        if (!req->path.data || req->path.size == 0) {
+                error("Invalid request: empty path");
+                return (HttpResponse){
+                    .data   = strdup("HTTP/1.1 400 Bad Request\r\n\r\n"),
+                    .length = 28,
+                    .status = -1};
+        }
+
         info("Looking for handler for '%.*s'", STRING_PRINT(req->path));
 
         ResponseWriter rw;
