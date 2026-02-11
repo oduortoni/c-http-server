@@ -6,6 +6,8 @@ CC ?= cc
 
 INCLUDES = -I$(SRC_DIR)/lib  # Include path for headers
 
+# for clang:
+# CFLAGS  = -std=gnu23 -Wno-dollar-in-identifier-extension
 CFLAGS  = -std=gnu23
 CFLAGS += -Wall -Wextra -pedantic
 # Some warnings and errors can only be catched at specific level of

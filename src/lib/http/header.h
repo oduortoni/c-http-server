@@ -42,6 +42,10 @@ struct Header {
         struct String value;
 };
 
+//
+// Request
+//
+
 typedef struct Request Request;
 struct Request {
         char method[MAX_METHOD_LEN];
@@ -61,9 +65,46 @@ struct Request {
         regmatch_t path_matches[20];
 };
 
-// TODO: add constructor/destructor functions
 Request* parse_http_request(const char* req_bytes);
-void free_request(Request* req);
+
+//
+// Request internals
+//
+
+enum ParseStep {
+        PARSE_METHOD,
+        PARSE_PATH,
+        PARSE_VERSION,
+        PARSE_HEADER_NAME,
+        PARSE_HEADER_VALUE,
+        PARSE_BODY,
+        PARSE_COMPLETE,
+        PARSE_ERROR
+};
+
+struct ParseState {
+        struct Request* req;
+        enum ParseStep step;
+        const char* p;
+        int content_length;
+        struct String* body;
+        struct Arena* allocator;
+};
+
+struct ParseState* parse_http_init_state(const char* raw_request);
+
+void parse_http_method(struct ParseState* state);
+void parse_http_path(struct ParseState* state);
+void parse_http_version(struct ParseState* state);
+
+void parse_http_header_name(struct ParseState* state);
+void parse_http_header_value(struct ParseState* state);
+
+void parse_http_body(struct ParseState* state);
+
+//
+// Response
+//
 
 typedef struct ResponseWriter ResponseWriter;
 struct ResponseWriter {
@@ -86,17 +127,6 @@ void InitResponseWriter(ResponseWriter* rw);
 void SetHeader(ResponseWriter* rw, const char* name, const char* value);
 void SetStatus(ResponseWriter* rw, int code, const char* text);
 char* BuildResponse(ResponseWriter* rw);
-
-enum ParseState {
-        PARSE_METHOD,
-        PARSE_PATH,
-        PARSE_VERSION,
-        PARSE_HEADER_NAME,
-        PARSE_HEADER_VALUE,
-        PARSE_BODY,
-        PARSE_COMPLETE,
-        PARSE_ERROR
-};
 
 typedef int (*HandlerFunc)(ResponseWriter* w, Request* r);
 

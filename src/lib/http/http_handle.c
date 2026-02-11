@@ -68,12 +68,6 @@ http_handle(Router* router, const char* request_data)
         char* response      = BuildResponse(&rw);
         size_t response_len = strlen(response);
 
-        // Clean up arena allocations
-        if (rw.allocator) {
-                arena_free_all(rw.allocator);
-        }
-        free_request(req);
-
         return (HttpResponse){
             .data = response, .length = response_len, .status = 0};
 }

@@ -43,6 +43,9 @@ InitResponseWriter(ResponseWriter* rw)
                 arena_init(&arena, buf, buf_len);
         }
 
+        // reset arena during initialization to forget about memory management
+        arena_free_all(&arena);
+
         memset(rw, 0, sizeof *rw);
         strncpy(rw->version, "HTTP/1.1", MAX_VERSION_LEN);
         rw->allocator   = &arena;
