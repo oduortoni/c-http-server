@@ -9,7 +9,7 @@ cleanup() {
 trap cleanup EXIT
 
 die() {
-  printf "\033[31mERROR:\033[0m $1\n" >&2
+  printf "\033[31mINTEGRATION TEST ERROR:\033[0m $1\n" >&2
   exit 1
 }
 
