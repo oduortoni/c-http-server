@@ -1,7 +1,6 @@
 #ifndef _HTTP_HEADER_H
 #define _HTTP_HEADER_H
 
-#include <ctype.h>
 #include <regex.h>
 
 #include "net/header.h"
@@ -130,9 +129,17 @@ char* BuildResponse(ResponseWriter* rw);
 
 typedef int (*HandlerFunc)(ResponseWriter* w, Request* r);
 
+struct Route {
+        char* pattern;
+        regex_t compiled_pattern;
+        HandlerFunc handler;
+};
+typedef struct Route Route;
+
 struct Router {
         char* patterns[50];
         regex_t regex_patterns[50];
+        int route_count;
         HandlerFunc handlers[50];
 };
 typedef struct Router Router;
@@ -145,6 +152,8 @@ typedef enum RouterStatus {
         ROUTER_DUPLICATE     = -4,
         ROUTER_INVALID_REGEX = -5,
 } RouterStatus;
+
+HandlerFunc router_match(Router* router, const char* path, Request* req);
 
 struct HttpServer {
         int (*ListenAndServe)(char* host, Router* router);
@@ -167,5 +176,6 @@ ProtocolResponse http_handle_connection(RequestContext* context,
                                         size_t request_len);
 
 extern HttpServer http;
+extern Router router;
 
 #endif  // _HTTP_HEADER_H

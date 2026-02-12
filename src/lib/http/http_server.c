@@ -10,7 +10,11 @@ int
 listenAndServe(char* host, Router* router)
 {
         if (router == NULL) {
+                // if no router is provided, use global http router
                 router = http.router;
+        } else {
+                // if pprovided, make global point to it
+                http.router = router;
         }
         puts("http/server.c");
         for (size_t i = 0;

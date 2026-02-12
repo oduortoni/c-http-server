@@ -24,8 +24,7 @@ handleFunc(const char* pattern, HandlerFunc handler)
         }
 
         if (http.router->route_count >=
-            MAX_ROUTES) {  // TODO: replace with dynamic ARRAY_LEN equivalent
-                           // for now
+            50) {  // TODO: replace with dynamic ARRAY_LEN equivalent
                 return ROUTER_FULL;
         }
 
