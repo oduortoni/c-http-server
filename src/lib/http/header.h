@@ -129,6 +129,18 @@ char* BuildResponse(ResponseWriter* rw);
 
 typedef int (*HandlerFunc)(ResponseWriter* w, Request* r);
 
+/*------------------------------------------------ Routing
+ * -------------------------------------------------------------*/
+
+struct Dispatcher {
+        HandlerFunc (*match)(void* impl_data, const char* path, Request* req);
+        void (*add_route)(void* impl_data, const char* pattern,
+                          HandlerFunc handler);
+        void (*mount)(void* parent_data, const char* prefix, void* child_data);
+        void (*free)(void* impl_data);
+};
+typedef struct Dispatcher Dispatcher;
+
 struct Route {
         char* pattern;
         regex_t compiled_pattern;
@@ -139,8 +151,10 @@ typedef struct Route Route;
 struct Router {
         char* patterns[50];
         regex_t regex_patterns[50];
-        int route_count;
         HandlerFunc handlers[50];
+        int route_count;
+        const Dispatcher* dispatcher;
+        void* impl_data;
 };
 typedef struct Router Router;
 
@@ -154,6 +168,15 @@ typedef enum RouterStatus {
 } RouterStatus;
 
 HandlerFunc router_match(Router* router, const char* path, Request* req);
+void router_add(Router* router, const char* pattern, HandlerFunc handler);
+void router_mount(Router* parent, const char* prefix, Router* child);
+HandlerFunc router_match_dispatcher(Router* router, const char* path,
+                                    Request* req);
+void router_free(Router* router);
+Router* router_create_regex(void);
+
+/*------------------------------------------------ END OF Routing
+ * ----------------------------------*/
 
 struct HttpServer {
         int (*ListenAndServe)(char* host, Router* router);

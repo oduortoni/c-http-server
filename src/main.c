@@ -24,16 +24,15 @@ main()
                 sprintf(hostname, "%s:%d", host_url, PORT);
         }
 
-        http.HandleFunc("^/$", Index);
-        http.HandleFunc("^/about$", About);
-        http.HandleFunc("^/404$", Error404);
-        http.HandleFunc("^/static/(.*)$", Static);
+        Router* router = router_create_regex();
+        router_add(router, "^/$", Index);
+        router_add(router, "^/about$", About);
+        router_add(router, "^/404$", Error404);
+        router_add(router, "^/static/(.*)$", Static);
 
-        http.ListenAndServe(hostname, NULL);
+        http.ListenAndServe(hostname, router);
 
-        // Router router = {{"/404", "/", "/about", NULL}, {Error404, Index,
-        // About, NULL}}; printf("Route: %s\n", router.patterns[1]);
-        // http.ListenAndServe(hostname, &router);
+        router_free(router);
 
         printf("Server listening on %d\n", PORT);
         return 0;
