@@ -1,5 +1,4 @@
 #include "header.h"
-#include "utils/macros.h"
 
 RouterStatus
 handleFunc(const char* pattern, HandlerFunc handler)
@@ -13,30 +12,34 @@ handleFunc(const char* pattern, HandlerFunc handler)
                 if (!http.router) {
                         return ROUTER_NOMEM;
                 }
+                http.router->route_count = 0;
         }
 
-        for (size_t i = 0; i < ARRAY_LEN(http.router->patterns); i++) {
-                if (http.router->patterns[i]) {
-                        // prevent duplicate route registration
-                        if (strcmp(http.router->patterns[i], pattern) == 0) {
-                                return ROUTER_DUPLICATE;
-                        }
-                        continue;
+        for (int i = 0; i < http.router->route_count; i++) {
+                // prevent duplicate route registration
+                if (strcmp(http.router->patterns[i], pattern) == 0) {
+                        return ROUTER_DUPLICATE;
                 }
-
-                if (regcomp(&http.router->regex_patterns[i], pattern,
-                            REG_EXTENDED)) {
-                        return ROUTER_INVALID_REGEX;
-                }
-
-                http.router->patterns[i] = strdup(pattern);
-                if (!http.router->patterns[i]) {
-                        return ROUTER_NOMEM;
-                }
-
-                http.router->handlers[i] = handler;
-                return ROUTER_OK;
+                continue;
         }
 
-        return ROUTER_FULL;
+        if (http.router->route_count >=
+            MAX_ROUTES) {  // TODO: replace with dynamic ARRAY_LEN equivalent
+                           // for now
+                return ROUTER_FULL;
+        }
+
+        int i = http.router->route_count;
+        if (regcomp(&http.router->regex_patterns[i], pattern, REG_EXTENDED)) {
+                return ROUTER_INVALID_REGEX;
+        }
+
+        http.router->patterns[i] = strdup(pattern);
+        if (!http.router->patterns[i]) {
+                return ROUTER_NOMEM;
+        }
+
+        http.router->handlers[i] = handler;
+        http.router->route_count++;
+        return ROUTER_OK;
 }
