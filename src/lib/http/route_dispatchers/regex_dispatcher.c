@@ -47,10 +47,21 @@ regex_mount(void* parent_data, const char* prefix, void* child_data)
         RegexRouterData* child = (RegexRouterData*)child_data;
 
         for (size_t i = 0; i < child->len; i++) {
-                char* new_pattern = malloc(strlen(prefix) +
-                                           strlen(child->items[i].pattern) + 1);
-                strcpy(new_pattern, prefix);
-                strcat(new_pattern, child->items[i].pattern);
+                char* child_pattern = child->items[i].pattern;
+
+                // Remove ^ from start and $ from end of child pattern
+                char* pattern_body  = child_pattern + 1;  // Skip ^
+                size_t body_len     = strlen(pattern_body);
+                if (body_len > 0 && pattern_body[body_len - 1] == '$') {
+                        body_len--;                       // Remove $
+                }
+
+                // Create new pattern: ^<prefix><pattern_body>$
+                char* new_pattern =
+                    malloc(strlen(prefix) + body_len + 3);  // ^ + $ + \0
+                sprintf(new_pattern, "^%s%.*s$", prefix, (int)body_len,
+                        pattern_body);
+
                 regex_add_route(parent_data, new_pattern,
                                 child->items[i].handler);
                 free(new_pattern);

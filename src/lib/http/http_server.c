@@ -20,6 +20,7 @@ listenAndServe(char* host, Router* router)
 
         if (router == NULL) {
                 printf("ERROR: Router is NULL\n");
+                return -1;
         }
 
         puts("http/server.c");
@@ -27,7 +28,6 @@ listenAndServe(char* host, Router* router)
         printf("Dispatcher address: %p\n", (void*)router->dispatcher);
 
         if (!router->dispatcher) {
-                puts("NOOOOOOPE");
                 for (size_t i = 0;
                      i < ARRAY_LEN(router->patterns) && router->patterns[i];
                      i++) {
