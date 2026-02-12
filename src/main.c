@@ -1,3 +1,4 @@
+#include "app/blog/header.h"
 #include "app/header.h"
 #include "lib/env/header.h"
 #include "lib/http/header.h"
@@ -37,6 +38,9 @@ main()
 
         router_mount(router, "/tests", test_router);
 
+        // a router created within the app/blog/ directory
+        router_mount(router, "/apps", BlogRouter());
+
         /*
          * Used to check for memory leaks in allocation and deallocation of
          * memory
@@ -48,7 +52,8 @@ main()
         http.ListenAndServe(hostname, router);
 
         /*
-         * TODO: This is never reached.
+         * TODO: This is never reached due to infinite listener that stops on
+         * CTRL + C
          * - Need to add a way to handle graceful shut down
          */
         printf("\n\n\t << Graceful Shutdown >>\n\n");
