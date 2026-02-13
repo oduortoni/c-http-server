@@ -30,6 +30,8 @@ Comprehensive documentation is available in the [docs](docs) folder. The documen
 - [Core Documentation](docs/DOCUMENTATION.md) - Beginner-friendly explanation of how the server works
 - [Visual Guide](docs/VISUAL_GUIDE.md) - Diagrams illustrating the server architecture
 - [Practical Examples](docs/EXAMPLES.md) - Code examples for extending the server
+- [Template System](docs/TEMPLATE_SYSTEM.md) - Instructions of how to use the template system
+- [Routing System](docs/ROUTING.md) - Instructions on how to use the routing system
 
 See the [docs README](docs/README.md) for more information.
 

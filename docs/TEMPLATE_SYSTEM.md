@@ -1,3 +1,55 @@
+# The Template System And The ZC Compiler
+
+## Install The Compiler
+
+### 1. System-Wide Install (Requires superuser permissions)
+
+```bash
+git clone https://github.com/koutoftimer/zc.git /tmp/zc
+cd /tmp/zc && make
+sudo cp /tmp/zc/build/zc /usr/local/bin/zc
+```
+
+Verify installation:
+```bash
+which zc
+# Output: /usr/local/bin/zc
+```
+
+### 2. Rootless Install (User directory)
+
+```bash
+git clone https://github.com/koutoftimer/zc.git /tmp/zc
+cd /tmp/zc && make
+mkdir -p ~/bin
+cp /tmp/zc/build/zc ~/bin/zc
+```
+
+Add to your shell profile (`~/.bashrc` or `~/.zshrc`):
+```bash
+export PATH="$HOME/bin:$PATH"
+```
+
+Reload your shell:
+```bash
+source ~/.bashrc  # or source ~/.zshrc
+```
+
+Verify installation:
+```bash
+which zc
+# Output: /home/username/bin/zc
+```
+
+**Note:** If using rootless install, update the Makefile:
+```makefile
+ZC_TOOL_PATH ?= $(HOME)/bin/zc
+```
+
+
+
+## How It Works
+
 Templates are the files with an extension `*.th` ("template header" files).
 
 **`index-template.th`**

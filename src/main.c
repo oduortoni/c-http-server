@@ -1,4 +1,3 @@
-#include "app/blog/header.h"
 #include "app/header.h"
 #include "lib/env/header.h"
 #include "lib/http/header.h"
@@ -27,19 +26,8 @@ main()
 
         Router* router = router_create_regex();
         router_add(router, "^/$", Index);
-        router_add(router, "^/about$", About);
         router_add(router, "^/404$", Error404);
         router_add(router, "^/static/(.*)$", Static);
-
-        // Test router cleanup
-        Router* test_router = router_create_regex();
-        router_add(test_router, "^/test$", TestHandler);
-        printf("Created test router with 1 route\n");
-
-        router_mount(router, "/tests", test_router);
-
-        // a router created within the app/blog/ directory
-        router_mount(router, "/apps", BlogRouter());
 
         /*
          * Used to check for memory leaks in allocation and deallocation of
