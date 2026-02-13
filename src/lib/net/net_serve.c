@@ -1,4 +1,5 @@
 #include "header.h"
+#include "utils/logging/header.h"
 
 /**
  * Starts a server that listens for incoming connections on the specified host
@@ -28,7 +29,7 @@ net_serve(char* host, ProtocolHandler handle_protocol, RequestContext* context)
         }
 
         int server_socket = net_listener(head, port);
-        printf("Serving requests on %d\n", port);
+        info("Serving requests on %s\n", host);
 
         while (1) {
                 struct sockaddr_in client_addr;
@@ -43,7 +44,7 @@ net_serve(char* host, ProtocolHandler handle_protocol, RequestContext* context)
                         exit(1);
                 }
 
-                printf("Accepted connection from %s:%d\n",
+                info("Accepted connection from %s:%d\n",
                        inet_ntoa(client_addr.sin_addr),
                        ntohs(client_addr.sin_port));
 

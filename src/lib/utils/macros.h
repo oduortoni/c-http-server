@@ -20,22 +20,22 @@
 
 #define da_append(array, value)                                             \
         do {                                                                \
-                static_assert(is_same_type(array.len, size_t));             \
-                static_assert(is_same_type(array.capacity, size_t));        \
-                static_assert(is_same_type(*array.items, typeof(value)));   \
-                if (array.items == nullptr) {                               \
-                        array.len      = 0;                                 \
-                        array.capacity = 10;                                \
-                        array.items =                                       \
-                            malloc(sizeof(*array.items) * array.capacity);  \
+                static_assert(is_same_type((array).len, size_t));             \
+                static_assert(is_same_type((array).capacity, size_t));        \
+                static_assert(is_same_type(*(array).items, typeof(value)));   \
+                if ((array).items == nullptr) {                               \
+                        (array).len      = 0;                                 \
+                        (array).capacity = 10;                                \
+                        (array).items =                                       \
+                            malloc(sizeof(*(array).items) * (array).capacity);  \
                 }                                                           \
-                if (array.len + 1 > array.capacity) {                       \
-                        array.capacity *= 2;                                \
-                        array.items =                                       \
-                            realloc(array.items,                            \
-                                    array.capacity * sizeof(*array.items)); \
+                if ((array).len + 1 > (array).capacity) {                       \
+                        (array).capacity *= 2;                                \
+                        (array).items =                                       \
+                            realloc((array).items,                            \
+                                    (array).capacity * sizeof(*(array).items)); \
                 }                                                           \
-                if (array.items) array.items[array.len++] = value;          \
+                if ((array).items) (array).items[(array).len++] = value;          \
         } while (0)
 
 #endif  // INCLUDE_UTILS_MACROS_H_

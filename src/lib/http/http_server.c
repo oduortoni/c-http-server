@@ -1,5 +1,6 @@
 #include "header.h"
 #include "utils/macros.h"
+#include "utils/logging/header.h"
 
 HttpServer http = {
     .ListenAndServe = listenAndServe,
@@ -16,27 +17,25 @@ listenAndServe(char* host, Router* router)
                 // if pprovided, make global point to it
                 http.router = router;
         }
-        puts("http/server.c");
 
         if (router == NULL) {
-                printf("ERROR: Router is NULL\n");
+                error("ERROR: Router is NULL\n");
                 return -1;
         }
 
-        puts("http/server.c");
-        printf("Router address: %p\n", (void*)router);
-        printf("Dispatcher address: %p\n", (void*)router->dispatcher);
+        // info("http/server.c");
+        // info("Router address: %p\n", (void*)router);
+        // info("Dispatcher address: %p\n", (void*)router->dispatcher);
 
         if (!router->dispatcher) {
                 for (size_t i = 0;
                      i < ARRAY_LEN(router->patterns) && router->patterns[i];
                      i++) {
-                        printf("SERVERT: %s\n", router->patterns[i]);
+                        info("Using old router: %s\n", router->patterns[i]);
                 }
         } else {
-                printf("Using dispatcher-based router\n");
+                info("Using dispatcher-based router\n");
         }
-        printf("RouteD\n");
         RequestContext context = {.router = http.router};
 
         net_serve(host, http_handle_connection, &context);
