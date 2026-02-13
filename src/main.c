@@ -1,6 +1,7 @@
 #include "app/header.h"
 #include "lib/env/header.h"
 #include "lib/http/header.h"
+#include "utils/logging/header.h"
 
 const int PORT   = 9000;
 const char* HOST = "127.0.0.1";
@@ -29,14 +30,6 @@ main()
         router_add(router, "^/404$", Error404);
         router_add(router, "^/static/(.*)$", Static);
 
-        /*
-         * Used to check for memory leaks in allocation and deallocation of
-         * memory
-         */
-        // router_free(router);
-        // printf("Freed test router\n");
-
-        printf("Server listening on %d\n", PORT);
         http.ListenAndServe(hostname, router);
 
         /*
@@ -44,8 +37,8 @@ main()
          * CTRL + C
          * - Need to add a way to handle graceful shut down
          */
-        printf("\n\n\t << Graceful Shutdown >>\n\n");
-        router_free(router);
+        // info("\n\n\t << Graceful Shutdown >>\n\n");
+        // router_free(router);
 
         return 0;
 }
