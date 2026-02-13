@@ -1,6 +1,6 @@
 #include "header.h"
-#include "utils/macros.h"
 #include "utils/logging/header.h"
+#include "utils/macros.h"
 
 HttpServer http = {
     .ListenAndServe = listenAndServe,

@@ -2,8 +2,8 @@
 #include <sys/stat.h>
 
 #include "header.h"
-#include "utils/string/header.h"
 #include "utils/logging/header.h"
+#include "utils/string/header.h"
 
 int
 Static(ResponseWriter* w, Request* r)
