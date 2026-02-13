@@ -4,10 +4,6 @@
 GET http://localhost:{{PORT}}/
 HTTP 200
 
-# Test: About page
-GET http://localhost:{{PORT}}/about
-HTTP 200
-
 # Test: Explicit 404 page
 GET http://localhost:{{PORT}}/404
 HTTP 404

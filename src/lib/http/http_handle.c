@@ -30,24 +30,25 @@ http_handle(Router* router, const char* request_data)
         InitResponseWriter(&rw);
 
         // Find and call handler
-        HandlerFunc handler = nullptr;
-        for (size_t i = 0;
-             i < ARRAY_LEN(router->patterns) && router->patterns[i]; i++) {
-                req->path_regex = &router->regex_patterns[i];
-                if (!regexec(req->path_regex, req->path.data,
-                             ARRAY_LEN(req->path_matches), req->path_matches,
-                             0)) {
-                        info("Using '%s' handler", router->patterns[i]);
-                        handler = router->handlers[i];
-                        break;
+        HandlerFunc handler = router_match(router, req->path.data, req);
+
+        // If no handler found, try 404
+        if (handler == nullptr) {
+                printf("ROUTE NOT FOUND\n");
+                req->path_regex = nullptr;
+                for (int i = 0; i < router->route_count; i++) {
+                        if (strcmp("^/404$", router->patterns[i]) == 0) {
+                                info("Using '%s' handler", router->patterns[i]);
+                                handler = router->handlers[i];
+                                break;
+                        }
                 }
         }
 
         // If no handler found, try 404
         if (handler == nullptr) {
                 req->path_regex = nullptr;
-                for (size_t i = 0;
-                     i < ARRAY_LEN(router->patterns) && router->patterns[i];
+                for (int i = 0; i < router->route_count && router->patterns[i];
                      i++) {
                         if (strcmp("^/404$", router->patterns[i]) == 0) {
                                 info("Using '%s' handler", router->patterns[i]);

@@ -1,3 +1,5 @@
+#include <ctype.h>
+
 #include "header.h"
 #include "utils/logging/header.h"
 

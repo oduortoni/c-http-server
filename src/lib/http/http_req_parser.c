@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <ctype.h>
 #include <stdint.h>
 
 #include "header.h"
