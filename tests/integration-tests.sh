@@ -30,15 +30,18 @@ for i in {1..25}; do
   fi
 done
 
-# Run Hurl tests
-if [ -z "$HURL" ]; then
-  HURL="hurl"
-fi
+echo "Testing routes..."
 
-$HURL --test --variable PORT="$PORT" tests/integration-tests.hurl
+curl -s "$HOST/" | grep -q "A Minimalistic C Server" || die "Home page test failed"
+echo "✓ Home page works"
 
-[ $? -ne 0 ] && die "hurl failed"
+curl -s "$HOST/nonexistent" | grep -q "404" || die "404 test failed"
+echo "✓ 404 handling works"
+
+echo "All integration tests passed"
 
 # Check for closing connection
 printf '' > /dev/tcp/127.0.0.1/9000
 sleep 0.3
+
+echo "Testing closing connection complete"

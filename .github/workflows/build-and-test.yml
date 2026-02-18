@@ -1,5 +1,6 @@
 name: C Build and Test
 on:
+  workflow_dispatch:
   pull_request:
   push:
     branches:
@@ -10,52 +11,35 @@ env:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    container:
-      image: koutoftimer/oduortoni-c-http-server-actions:latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PAT_TOKEN }}
           fetch-depth: 0
           ref: ${{ github.head_ref || github.ref }}
+          
+      - name: Cache APT packages
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt/archives
+          key: ${{ runner.os }}-apt-${{ hashFiles('**/build-and-test.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-apt-
       
-      - name: Auto-format code
+      - name: Cache build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            bin/
+            obj/
+          key: ${{ runner.os }}-build-${{ hashFiles('src/**', 'Makefile') }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+      
+      - name: Install dependencies
         run: |
-          set -x  # Enable debug output
-          
-          git config --global --add safe.directory $PWD
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Run formatting
-          pre-commit run --all-files || true
-          
-          # Debug: show git status
-          echo "=== Git Status ==="
-          git status
-          echo "=== Git Diff ==="
-          git diff
-          echo "=== Porcelain ==="
-          git status --porcelain
-          
-          # Exit early if no changes
-          if [ -z "$(git status --porcelain)" ]; then
-            echo "✓ No formatting changes needed"
-            exit 0
-          fi
-          
-          # Only set up git remote if we actually need to push
-          echo "Changes detected, setting up authentication..."
-          git remote set-url origin https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/${{ github.repository }}.git
-          
-          git add -A
-          git commit -m "style: auto-format code with clang-format [skip ci]"
-          git push
-          echo "✓ Code formatted and pushed"
+          sudo apt-get update
+          sudo apt-get install -y gcc-14 make curl
       
       - name: Build C code
         run: |
