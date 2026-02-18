@@ -2,6 +2,7 @@
 #include <sys/stat.h>
 
 #include "header.h"
+#include "utils/logging/header.h"
 #include "utils/string/header.h"
 
 int
@@ -11,11 +12,11 @@ Static(ResponseWriter* w, Request* r)
         // directory
         assert(r->path.size);
         char const* filename = r->path.data + 1;
-        printf("Requested static file: '%s'\n", filename);
+        info("Requested static file: '%s'\n", filename);
 
         struct stat st;
         if (r->path_regex->re_nsub != 1 || stat(filename, &st) < 0) {
-                perror("Requested file not found");
+                error("Requested file not found");
                 return Error404(w, r);
         }
 

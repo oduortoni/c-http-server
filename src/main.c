@@ -1,6 +1,7 @@
 #include "app/header.h"
 #include "lib/env/header.h"
 #include "lib/http/header.h"
+#include "utils/logging/header.h"
 
 const int PORT   = 9000;
 const char* HOST = "127.0.0.1";
@@ -29,7 +30,6 @@ main()
         router_add(router, "^/404$", Error404);
         router_add(router, "^/static/(.*)$", Static);
 
-        printf("Server listening on %d\n", PORT);
         http.ListenAndServe(hostname, router);
 
         printf("\n\n\t << Graceful Shutdown >>\n\n");

@@ -5,8 +5,6 @@
 HandlerFunc
 regex_match(void* impl_data, const char* path, Request* req)
 {
-        printf("Search for route '%s'\n", path);
-
         RegexRouterData* data = (RegexRouterData*)impl_data;
         for (size_t i = 0; i < data->len; i++) {
                 req->path_regex = &data->items[i].compiled_pattern;
@@ -23,22 +21,13 @@ regex_match(void* impl_data, const char* path, Request* req)
 static void
 regex_add_route(void* impl_data, const char* pattern, HandlerFunc handler)
 {
-        RegexRouterData* data_ptr = (RegexRouterData*)impl_data;
-        RegexRouterData data;
-
-        data.items         = data_ptr->items;
-        data.capacity      = data_ptr->capacity;
-        data.len           = data_ptr->len;
+        RegexRouterData* data = (RegexRouterData*)impl_data;
 
         struct Route route = {.pattern = strdup(pattern), .handler = handler};
 
         regcomp(&route.compiled_pattern, pattern, REG_EXTENDED);
 
-        da_append(data, route);
-
-        data_ptr->items    = data.items;
-        data_ptr->capacity = data.capacity;
-        data_ptr->len      = data.len;
+        da_append(*data, route);
 }
 
 static void

@@ -2,6 +2,7 @@
 #include <signal.h>
 
 #include "header.h"
+#include "utils/logging/header.h"
 
 volatile sig_atomic_t shutdown_requested = false;
 
@@ -45,7 +46,7 @@ net_serve(char* host, ProtocolHandler handle_protocol, RequestContext* context)
         }
 
         int server_socket = net_listener(head, port);
-        printf("Serving requests on %d\n", port);
+        info("Serving requests on %s\n", host);
 
         while (!shutdown_requested) {
                 struct sockaddr_in client_addr;
@@ -61,9 +62,9 @@ net_serve(char* host, ProtocolHandler handle_protocol, RequestContext* context)
                         exit(1);
                 }
 
-                printf("Accepted connection from %s:%d\n",
-                       inet_ntoa(client_addr.sin_addr),
-                       ntohs(client_addr.sin_port));
+                info("Accepted connection from %s:%d\n",
+                     inet_ntoa(client_addr.sin_addr),
+                     ntohs(client_addr.sin_port));
 
                 // TODO: avoid using a direct integer in favor of a variable
                 // network layer, read bytes from socket
