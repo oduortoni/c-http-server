@@ -13,8 +13,6 @@ net_listener(char* host, int port)
         address.sin_family = AF_INET;
         address.sin_port   = htons(port);
 
-        printf("Host: %s, Port: %d\n", host, port);
-
         // convert the host to a binary form and store it in
         // address.sin_addr.s_addr
         if (inet_pton(AF_INET, host, &address.sin_addr) <= 0) {
