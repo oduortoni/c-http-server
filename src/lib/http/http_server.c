@@ -23,10 +23,6 @@ listenAndServe(char* host, Router* router)
                 return -1;
         }
 
-        // info("http/server.c");
-        // info("Router address: %p\n", (void*)router);
-        // info("Dispatcher address: %p\n", (void*)router->dispatcher);
-
         if (!router->dispatcher) {
                 for (size_t i = 0;
                      i < ARRAY_LEN(router->patterns) && router->patterns[i];
