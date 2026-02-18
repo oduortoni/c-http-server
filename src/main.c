@@ -32,13 +32,8 @@ main()
 
         http.ListenAndServe(hostname, router);
 
-        /*
-         * TODO: This is never reached due to infinite listener that stops on
-         * CTRL + C
-         * - Need to add a way to handle graceful shut down
-         */
-        // info("\n\n\t << Graceful Shutdown >>\n\n");
-        // router_free(router);
+        printf("\n\n\t << Graceful Shutdown >>\n\n");
+        router_free(router);
 
         return 0;
 }

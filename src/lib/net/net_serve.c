@@ -1,5 +1,16 @@
+#include <errno.h>
+#include <signal.h>
+
 #include "header.h"
 #include "utils/logging/header.h"
+
+volatile sig_atomic_t shutdown_requested = false;
+
+void
+signal_hander([[maybe_unused]] int sig)
+{
+        shutdown_requested = true;
+}
 
 /**
  * Starts a server that listens for incoming connections on the specified host
@@ -19,6 +30,12 @@
 int
 net_serve(char* host, ProtocolHandler handle_protocol, RequestContext* context)
 {
+        struct sigaction sa = {.sa_handler = signal_hander};
+        // Termination signal
+        sigaction(SIGTERM, &sa, nullptr);
+        // Interrupt from keyboard
+        sigaction(SIGINT, &sa, nullptr);
+
         int port;
         char head[50], tail[50];
 
@@ -31,7 +48,7 @@ net_serve(char* host, ProtocolHandler handle_protocol, RequestContext* context)
         int server_socket = net_listener(head, port);
         info("Serving requests on %s\n", host);
 
-        while (1) {
+        while (!shutdown_requested) {
                 struct sockaddr_in client_addr;
                 socklen_t client_addrlen = sizeof(client_addr);
                 int client_conn =
@@ -39,6 +56,7 @@ net_serve(char* host, ProtocolHandler handle_protocol, RequestContext* context)
                            &client_addrlen);
 
                 if (client_conn < 0) {
+                        if (errno == EINTR) continue;
                         perror("accept() failed");
                         close(server_socket);
                         exit(1);
