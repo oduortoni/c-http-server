@@ -34,7 +34,6 @@ http_handle(Router* router, const char* request_data)
 
         // If no handler found, try 404
         if (handler == nullptr) {
-                printf("ROUTE NOT FOUND\n");
                 req->path_regex = nullptr;
                 for (int i = 0; i < router->route_count; i++) {
                         if (strcmp("^/404$", router->patterns[i]) == 0) {
